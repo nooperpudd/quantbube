@@ -1,0 +1,24 @@
+# https://docs.landscape.io/configuration.html
+doc-warnings: true
+
+test-warnings: true
+
+strictness: veryhigh
+max-line-length: 120
+autodetect: true
+
+requirements:
+  - requirement.txt
+  - requirement-dev.txt
+
+pep8:
+  full: true
+  
+ignore-paths:
+  - docs
+python-targets:
+  - 3
+
+pylit:
+  disable:
+   - W0232  # W0232 Class has no __init__ method

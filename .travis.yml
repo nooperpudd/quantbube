@@ -1,0 +1,29 @@
+# https://docs.travis-ci.com/
+language: python
+
+sudo: false
+python:
+  - "3.5"
+  - "3.6"
+
+cache:
+  directories:
+    - $HOME/.cache/.pip/
+
+
+services:
+  - mongodb
+  - redis-server
+
+install:
+  - pip install -r requirements.txt --cache-dir=$CACHE_DIR --upgrade
+  - pip install -r requirements.txt --cache-dir=$CACHE_DIR --upgrade
+
+
+script:
+  - py.test --cov=codecov
+
+after_success:
+ # run codecov report
+  - codecov
+
