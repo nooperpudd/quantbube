@@ -1,0 +1,15 @@
+pytest
+codecov
+coverage
+pylint
+flake8
+tox
+pyflakes
+
+#
+pytest-xdist
+pytest-cov
+pytest-timeout
+pytest-pylint
+pytest-runner
+pytest-pep8

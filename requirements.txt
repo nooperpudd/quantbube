@@ -1,0 +1,23 @@
+Cython
+numexpr
+bottleneck
+pytz
+numpy
+pandas
+python-dateutil
+logbook
+pymongo
+redis
+hiredis
+msgpack-python
+cytoolz
+# memory data
+pyarrow
+# Parallel compute
+dask
+blaze
+influxdb
+
+# todo
+# date time
+# arrow
