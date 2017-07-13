@@ -2,6 +2,7 @@
 language: python
 
 sudo: false
+
 python:
   - "3.5"
   - "3.6"
@@ -17,7 +18,7 @@ services:
 
 install:
   - pip install -r requirements.txt --cache-dir=$CACHE_DIR --upgrade
-  - pip install -r requirements.txt --cache-dir=$CACHE_DIR --upgrade
+  - pip install -r requirements-dev.txt --cache-dir=$CACHE_DIR --upgrade
 
 
 script:

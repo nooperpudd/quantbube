@@ -1,0 +1,13 @@
+# coverage control
+
+[run]
+branch = True
+source = quantbube
+
+[report]
+show_missing = true
+
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    except ImportError:

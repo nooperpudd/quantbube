@@ -6,7 +6,7 @@ flake8
 tox
 pyflakes
 
-#
+# pytest plugins
 pytest-xdist
 pytest-cov
 pytest-timeout
