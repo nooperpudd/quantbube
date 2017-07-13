@@ -1,2 +1,4 @@
 # https://docs.codecov.io/docs/codecov-yaml
 # default configuration
+codecov:
+  token: 1b65085a-2d60-40f9-9a55-2bb7bbb08d73
