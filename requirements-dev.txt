@@ -1,15 +1,16 @@
-pytest
-codecov
-coverage
-pylint
-flake8
-tox
-pyflakes
+pytest>=3.1.3
+coverage>=4.4.1
+codecov>=2.0.9
+
+pylint>=1.7.2
+flake8>=3.3.0
+tox>=2.7.0
+pyflakes>=1.5.0
 
 # pytest plugins
-pytest-xdist
-pytest-cov
-pytest-timeout
-pytest-pylint
-pytest-runner
-pytest-pep8
+pytest-xdist>=1.18.1
+pytest-cov>=2.5.1
+pytest-timeout>=1.2.0
+pytest-pylint>=0.7.1
+pytest-runner>=2.11.1
+pytest-pep8>=1.0.6

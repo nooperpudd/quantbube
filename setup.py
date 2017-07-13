@@ -46,23 +46,23 @@ setup(
     zip_safe=False,
     install_requires=install_requires,
     tests_require=tests_require,
+
     classifiers=[
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Science/Research",
-        "Operating System :: OS Independent",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Topic :: Office/Business",
-        "Topic :: Office/Business :: Financial",
-        "Topic :: Office/Business :: Financial :: Investment",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Mathematics"
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ],
-
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'Operating System :: OS Independent',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Topic :: Office/Business',
+        'Topic :: Office/Business :: Financial',
+        'Topic :: Office/Business :: Financial :: Investment',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Mathematics',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ]
 )

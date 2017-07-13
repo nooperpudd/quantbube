@@ -1,23 +1,29 @@
-Cython
-numexpr
-bottleneck
-pytz
-numpy
-pandas
-python-dateutil
-logbook
-pymongo
-redis
-hiredis
-msgpack-python
-cytoolz
+Cython>=0.25.2
+cytoolz>=0.8.2
+numexpr>=2.6.2
+bottleneck>=1.2.1
+
+numpy>=1.13.0
+pandas>=0.20.2
+python-dateutil>=2.6.0
+pytz>=2017.2
+
+
+pymongo>=3.4.0
+redis>=2.10.5
+hiredis>=0.2.0
+msgpack-python>=0.4.8
+
 # memory data
-pyarrow
+pyarrow>=0.4.1
+
 # Parallel compute
-dask
-blaze
-influxdb
+dask>=0.15.0
+blaze>=0.10.1
+
 
 # todo
 # date time
 # arrow
+# logbook
+# influxdb

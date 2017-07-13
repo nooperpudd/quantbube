@@ -20,9 +20,12 @@ install:
   - pip install -r requirements.txt --cache-dir=$CACHE_DIR --upgrade
   - pip install -r requirements-dev.txt --cache-dir=$CACHE_DIR --upgrade
 
+before_script:
+  - pip --version
+  - pip freeze # show packages version
 
 script:
-  - py.test --cov=codecov
+  - py.test
 
 after_success:
  # run codecov report
