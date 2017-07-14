@@ -1,11 +1,12 @@
 pytest>=3.1.3
+
 coverage>=4.4.1
 codecov>=2.0.9
 
 pylint>=1.7.2
 flake8>=3.3.0
+pycodestyle>=2.3.1
 tox>=2.7.0
-pyflakes>=1.5.0
 
 # pytest plugins
 pytest-xdist>=1.18.1
