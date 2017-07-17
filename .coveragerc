@@ -4,6 +4,14 @@
 branch = True
 source = quantbube
 
+omit=
+    .tox/*
+    docs/*
+    dist/*
+    build/*
+    sample/*
+
+
 [report]
 show_missing = true
 
