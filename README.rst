@@ -3,7 +3,7 @@ Quantbube
 
 Quantitative Analysis and Trading Strategy Framework
 
-|travis| |codecov| |health| |versions| |pypi|
+|travis| |codecov| |health| |versions| |pypi| |requirements|
 
 .. |travis| image:: https://travis-ci.org/nooperpudd/quantbube.svg?branch=master
     :target: https://travis-ci.org/nooperpudd/quantbube
@@ -15,6 +15,9 @@ Quantitative Analysis and Trading Strategy Framework
     :target: https://pypi.python.org/pypi/quantbube
 .. |pypi| image:: https://img.shields.io/pypi/v/quantbube.svg
     :target: https://pypi.python.org/pypi/quantbube
+.. |requirements| image:: https://requires.io/github/nooperpudd/quantbube/requirements.svg
+     :target: https://requires.io/github/nooperpudd/quantbube/requirements/
+     :alt: Requirements Status
 
 
 

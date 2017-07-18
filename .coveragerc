@@ -1,7 +1,7 @@
 # coverage control
 
 [run]
-branch = True
+branch = true
 source = quantbube
 
 omit=
@@ -10,6 +10,7 @@ omit=
     dist/*
     build/*
     sample/*
+    tests/*
 
 
 [report]
@@ -19,3 +20,6 @@ exclude_lines =
     pragma: no cover
     raise NotImplementedError
     except ImportError:
+
+[html]
+directory = cov_report

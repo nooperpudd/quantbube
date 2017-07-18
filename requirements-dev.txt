@@ -5,7 +5,7 @@ codecov>=2.0.9
 
 flake8>=3.3.0
 tox>=2.7.0
-
+tox-pyenv>=1.0.3
 # pytest plugins
 pytest-xdist>=1.18.1
 pytest-cov>=2.5.1
