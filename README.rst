@@ -26,10 +26,6 @@ Related Resource
 Contribute
 ----------
 
-License
--------
-This project is released under the terms of the `MIT license <http://opensource.org/licenses/MIT>`_.
-
 
 Contact
 -------

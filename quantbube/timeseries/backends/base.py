@@ -1,39 +1,20 @@
-# encoding:utf-8
-
+# coding:utf-8
 import abc
 
 
-class BaseSerializer(metaclass=abc.ABCMeta):
-    """
-     The base serializer class,
-    only defines the signature for loads and dumps
-    """
 
-    @abc.abstractmethod
-    def loads(self, serialized_data):
-        """
-
-        :param serialized_data: the structure data need to be
-        :return:
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def dumps(self, data):
-        """
-        :param data:
-        :return:
-        """
-        raise NotImplementedError()
 
 
 class BaseConnection(metaclass=abc.ABCMeta):
     """
-    base connect class
+    base connection class
     """
 
     def __int__(self, structure, *args, **kwargs):
         """
+        :param structure:
+        :param args:
+        :param kwargs:
         :return:
         """
         self.structure = structure
@@ -67,6 +48,7 @@ class BaseConnection(metaclass=abc.ABCMeta):
     def delete(self, key, *args, **kwargs):
         """
         delete item from the data
+        :param key:
         :param args:
         :param kwargs:
         :return:
@@ -120,6 +102,7 @@ class BaseConnection(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def remove_many(self, *args, **kwargs):
         """
+        remove many data
         :param args:
         :param kwargs:
         :return:
@@ -129,6 +112,7 @@ class BaseConnection(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def contains(self, *args, **kwargs):
         """
-        :return:
+        check data in database
+        :return: bool
         """
         raise NotImplementedError()

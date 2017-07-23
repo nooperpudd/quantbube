@@ -12,7 +12,9 @@ pytz>=2017.2
 pymongo>=3.4.0
 redis>=2.10.5
 hiredis>=0.2.0
+
 msgpack-python>=0.4.8
+python-rapidjson>=0.0.11
 
 # memory data
 pyarrow>=0.4.1

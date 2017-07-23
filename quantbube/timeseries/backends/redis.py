@@ -1,42 +1,27 @@
 # encoding:utf-8
 import logging
 
-import redis
 import msgpack
+import redis
 
-from .base import BaseConnection, BaseSerializer
+from .base import BaseConnection
+from quantbube.timeseries import serializer
 
 logger = logging.getLogger(__name__)
 
 
 class RedisException(Exception):
     """
+    redis Exception
     """
     pass
 
 
-class RedisSerializer(BaseSerializer):
-    """
-    """
-    def loads(self, serialized_data):
-        """
-        :param serialized_data:
-        :return:
-        """
-        return msgpack.unpackb(serialized_data)
-
-    def dumps(self, data):
-        """
-        :param data:
-        :return:
-        """
-        return msgpack.packb(data)
-
-
 class RedisStore(BaseConnection):
     """
+    Redis to save time-series data
     """
-    serializer_class = RedisSerializer
+    serializer_class = serializer.BaseSerializer
 
     def __int__(self, structure, url=None, db=None, **kwargs):
         """
@@ -45,7 +30,6 @@ class RedisStore(BaseConnection):
         :param kwargs:
         :return:
         """
-
         if url:
             pool = redis.ConnectionPool.from_url(url=url, db=db, **kwargs)
             self.conn = redis.StrictRedis(connection_pool=pool)
@@ -67,10 +51,12 @@ class RedisStore(BaseConnection):
         return results
         pass
 
-    def set(self, name, timestamp, **data):
+    def set(self, name, timestamp, expired=None, **data):
         """
+
         :param name:
         :param timestamp:
+        :param expired:
         :param data:
         :return:
         """
@@ -109,6 +95,7 @@ class RedisStore(BaseConnection):
         :return:
         """
         pass
+
     def remove_many(self, *args, **kwargs):
         """
         :param args:
@@ -116,6 +103,7 @@ class RedisStore(BaseConnection):
         :return:
         """
         pass
+
     def add_many(self, *args, **kwargs):
         """
         :param args:
