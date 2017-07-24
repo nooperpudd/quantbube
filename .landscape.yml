@@ -20,6 +20,6 @@ ignore-paths:
 python-targets:
   - 3
 
-pylit:
+pylint:
   disable:
    - W0232  # W0232 Class has no __init__ method
