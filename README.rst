@@ -3,8 +3,7 @@ Quantbube
 
 Quantitative Analysis and Trading Strategy Framework
 
-|travis| |codecov| |appveyor| |health| |versions| |pypi| |quality| |requirements|
-
+|travis| |codecov| |appveyor| |health| |versions| |pypi| |quality| |requirements| |gitter|
 
 Introduction
 ------------
@@ -53,6 +52,6 @@ Donate
     :target: https://www.codacy.com/app/nooperpudd/quantbube?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nooperpudd/quantbube&amp;utm_campaign=Badge_Grade
 .. |appveyor| image:: https://ci.appveyor.com/api/projects/status/i0i9rw2uxjs22cf9?svg=true
     :target: https://ci.appveyor.com/project/nooperpudd/quantbube
-
-
+.. |gitter| image:: https://badges.gitter.im/quantbube/Lobby.svg
+   :target: https://gitter.im/quantbube/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
