@@ -18,8 +18,9 @@ python-rapidjson>=0.0.11
 
 
 # memory data
-# todo
-# pyarrow>=0.4.1
+
+pyarrow==0.4.1
+
 bcolz>=1.1.2
 
 # Parallel compute
