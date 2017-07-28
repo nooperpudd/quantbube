@@ -8,6 +8,14 @@ clone_folder: C:\projects\quantbube
 services:
   - mongodb
 
+cache:
+  # Use the appveyor cache to avoid re-downloading large archives such
+  # the MKL numpy and scipy wheels mirrored on a rackspace cloud
+  # container, speed up the appveyor jobs and reduce bandwidth
+  # usage on our rackspace account.
+  - '%APPDATA%\pip\Cache'
+
+
 environment:
 
   global:
@@ -42,13 +50,13 @@ init:
 build: off
 
 install:
-  - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   # Check that we have the expected version and architecture for Python
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
   - "%CMD_IN_ENV% pip install -U pip setuptools wheel"
   - "%CMD_IN_ENV% pip install -r requirements.txt"
-  - "%CMD_IN_ENV% pip install -r requirements.txt"
+  - "%CMD_IN_ENV% pip install -r requirements-dev.txt"
 
 test_script:
 
