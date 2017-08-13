@@ -22,9 +22,10 @@ before_script:
   - pip freeze # show packages version
 
 script:
-  - pytest
+  - pytest -v
+  - py.test -v --cov=quantbube --cov-report html
 
 after_success:
  # run codecov report
-  - codecov
+  - codecov -e $TRAVIS_PYTHON_VERSION
 

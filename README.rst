@@ -20,6 +20,20 @@ Install
 Related Resource
 ----------------
 
+- MessagePack http://msgpack.org
+- Redis https://redis.io
+- MongoDB https://www.mongodb.com
+- InfluxDB https://www.influxdata.com
+
+
+Benchmark
+---------
+
+- Data Serializers compare Bson, Json and MessagePack
+- Efficently way to store real-time timeseris
+
+
+
 
 
 Contribute
@@ -35,7 +49,7 @@ Donate
 ------
 
 
-.. |travis| image:: https://travis-ci.org/nooperpudd/quantbube.svg?branch=master
+.. |travis| image:: https://travis-ci.org/nooperpudd/quantbube.svg
     :target: https://travis-ci.org/nooperpudd/quantbube
 .. |codecov| image:: https://codecov.io/gh/nooperpudd/quantbube/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/nooperpudd/quantbube
