@@ -1,14 +1,13 @@
 # coding:utf-8
 import abc
 
-
-
-
+from quantbube.utils.serializers import BaseSerializer
 
 class BaseConnection(metaclass=abc.ABCMeta):
     """
     base connection class
     """
+    default_serializer_class = BaseSerializer
 
     def __int__(self, structure, *args, **kwargs):
         """
@@ -37,7 +36,6 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def count(self, key, *args, **kwargs):
         """
         get the count of the data
@@ -73,13 +71,6 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    @abc.abstractmethod
-    def to_pandas(self):
-        """
-        convert data to pandas DataFrame
-        :return:
-        """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def iter(self):

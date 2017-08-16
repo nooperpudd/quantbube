@@ -14,11 +14,30 @@ class MsgPackParseError(Exception):
     pass
 
 
+class SerializerValidateError(Exception):
+    """
+    Validate the parsed data error
+    """
+    pass
+
+
 class BaseSerializer(metaclass=abc.ABCMeta):
     """
     The base serializer class,
     only defines the signature for loads and dumps
     """
+    def __init__(self, schema=None):
+        """
+        :param schema:
+        """
+        self.schema = schema
+
+    def validate(self, data, *args, **kwargs):
+        """
+        validate the dumps of data is valid or not
+        :return:bool
+        """
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def loads(self, data, *args, **kwargs):

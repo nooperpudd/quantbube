@@ -1,13 +1,9 @@
 # encoding:utf-8
-import logging
 
-import msgpack
 import redis
 
+from quantbube.utils import serializers
 from .base import BaseConnection
-from quantbube.timeseries import serializer
-
-logger = logging.getLogger(__name__)
 
 
 class RedisException(Exception):
@@ -17,64 +13,83 @@ class RedisException(Exception):
     pass
 
 
-class RedisStore(BaseConnection):
+class RedisTimeSeries(BaseConnection):
     """
     Redis to save time-series data
+    sorted as the desc
     """
-    serializer_class = serializer.BaseSerializer
+    default_serializer_class = serializers.MsgPackSerializer
 
-    def __int__(self, structure, url=None, db=None, **kwargs):
+    def __int__(self, redis_url=None, redis_db=None, data_schema=None,
+                serializer_class=None,
+                max_length: int = None, **kwargs):
         """
         :param url:
         :param db:
+        :param data_schema:
+        :param serializer_class:
+        :param max_length:
         :param kwargs:
-        :return:
         """
-        if url:
-            pool = redis.ConnectionPool.from_url(url=url, db=db, **kwargs)
+        # todo add redis client, better refactor
+        if redis_url:
+            pool = redis.ConnectionPool.from_url(url=redis_url, db=redis_db, **kwargs)
             self.conn = redis.StrictRedis(connection_pool=pool)
         else:
             self.conn = redis.StrictRedis(**kwargs)
 
-    def _pipeline(self):
-        """
-        wrapper the pipeline execute
-        :return:
-        """
-        pipe_needed = not isinstance(self.redis, BasePipeline)
-        if pipe_needed:
-            pipe = self.redis.pipeline(transaction=False)
-            operation(pipe, *args, **kwargs)
-            results = pipe.execute()
-        else:
-            results = operation(self.redis, *args, **kwargs)
-        return results
-        pass
+        serializer_class = serializer_class or self.default_serializer_class
+        self.serializer = serializer_class(data_schema)
+        # todo max length to auto trim the redis data
+        self.max_length = max_length
 
-    def set(self, name, timestamp, expired=None, **data):
+    def add(self, name, timestamp, **data):
         """
-
-        :param name:
-        :param timestamp:
-        :param expired:
+        :param name: key name
+        :param timestamp: timestamp
         :param data:
         :return:
         """
+        results = self.serializer.dumps(data)
+        return self.conn.zadd(name, timestamp, results)
 
-        pipe = self.conn.pipeline(transaction=True)
-        pipe.zadd(name, timestamp, str(data))
-
-        pipe.execute()
-
-    def get(self, name, start_timestamp, end_timestamp):
+    def get(self, name, timestamp):
         """
         :return:
         """
-        pipe = self.conn.pipeline(transaction=True)
-        pipe.zrange(name, start_timestamp, end_timestamp, withscores=True)
+        results = self.conn.zrangebyscore(name, min=timestamp, max=timestamp, num=1, withscores=True)
+        if results:
+            return self.serializer.loads(results)
 
-        result = pipe.execute()
-        return result
+    def delete(self, key, start_timestamp=None, end_timestamp=None):
+        """
+        :param key:
+        :param start_timestamp:
+        :param end_timestamp:
+        :return: bool
+        """
+        if start_timestamp and end_timestamp:
+            self.conn.zremrangebyscore(key, start_timestamp, end_timestamp)
+        elif start_timestamp and end_timestamp is None:
+            self.conn.zremrangebyscore(key, start_timestamp, "+inf")
+        elif start_timestamp is None and end_timestamp:
+            self.conn.zremrangebyscore(key, "-inf", end_timestamp)
+        else:
+            self.conn.zrem(key)
+
+    def trim(self, key, length):
+        """
+        trim the length in sorted key
+        sorted set in asc or desc?
+        :param key:
+        :param length:
+        :return:
+        """
+        # todo better refactor
+        begin = length
+        end = -1
+        results = self.conn.zremrangebyrank(key, begin, end)
+        return results
 
     def contains(self, *args, **kwargs):
         """
@@ -82,7 +97,8 @@ class RedisStore(BaseConnection):
         :param kwargs:
         :return:
         """
-        pass
+        pipe = self.conn.pipeline()
+        pipe.execute()
 
     def get_slice(self, key, start=None, end=None, ordering=None, *args, **kwargs):
         """
@@ -94,7 +110,9 @@ class RedisStore(BaseConnection):
         :param kwargs:
         :return:
         """
-        pass
+
+        pipe = self.conn.pipeline()
+        pipe.execute()
 
     def remove_many(self, *args, **kwargs):
         """
@@ -112,19 +130,24 @@ class RedisStore(BaseConnection):
         """
         pass
 
-    def all(self, name):
+    def all(self, key):
         pipe = self.conn.pipeline(transaction=True)
-
-        pipe.zrange(name, 0, -1, withscores=True)
+        pipe.zrange(key, 0, -1, withscores=True)
         result = pipe.execute()
         return result
-
-    def delete(self):
-        """
-        :return:
-        """
 
     def iter(self):
         """
         :return:
         """
+
+    def flush(self):
+        """
+        :return:
+        """
+
+    def execute(self):
+        """
+        :return:
+        """
+        pass
