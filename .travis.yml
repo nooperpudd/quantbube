@@ -23,7 +23,7 @@ before_script:
 
 script:
   - pytest -v
-  - py.test -v --cov=quantbube --cov-report
+  - py.test -v --cov=quantbube --cov-report xml
 
 after_success:
  # run codecov report
