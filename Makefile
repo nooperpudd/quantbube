@@ -1,6 +1,6 @@
 init:
-	pip3 install -r requirements.txt --upgrade
-	pip3 install -r requirements-dev.txt --upgrade
+	pip3 install -r requirements.txt
+	pip3 install -r requirements-dev.txt
 
 test:
 	tox -v
