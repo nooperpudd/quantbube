@@ -13,7 +13,7 @@ cache:
   # the MKL numpy and scipy wheels mirrored on a rackspace cloud
   # container, speed up the appveyor jobs and reduce bandwidth
   # usage on our rackspace account.
-  - '%APPDATA%\pip\Cache'
+  - '%LocalAppData%\pip\Cache'
 
 
 environment:
