@@ -22,7 +22,7 @@ pyarrow==0.6.0
 bcolz==1.1.2
 
 # Parallel compute
-dask==0.15.0
+dask==0.15.1
 blaze==0.10.1
 
 

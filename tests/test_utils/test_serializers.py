@@ -7,16 +7,10 @@ from quantbube.utils import serializers
 
 
 class MsgPackSerializersTests(unittest.TestCase):
-    """
-    """
-
     def setUp(self):
         self.msgpack_serializer = serializers.MsgPackSerializer()
 
     def test_loads_and_dumps(self):
-        """
-        :return:
-        """
         obj = {"aaa": ["bac", {"dd": "e"}, "11", 11.3, 11]}
         encode_data = self.msgpack_serializer.dumps(obj)
         decode_data = self.msgpack_serializer.loads(encode_data)

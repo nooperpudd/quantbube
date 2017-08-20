@@ -14,30 +14,11 @@ class MsgPackParseError(Exception):
     pass
 
 
-class SerializerValidateError(Exception):
-    """
-    Validate the parsed data error
-    """
-    pass
-
-
-class BaseSerializer(metaclass=abc.ABCMeta):
+class BaseSerializer(metaclass=abc.ABC):
     """
     The base serializer class,
     only defines the signature for loads and dumps
     """
-    def __init__(self, schema=None):
-        """
-        :param schema:
-        """
-        self.schema = schema
-
-    def validate(self, data, *args, **kwargs):
-        """
-        validate the dumps of data is valid or not
-        :return:bool
-        """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def loads(self, data, *args, **kwargs):
@@ -113,27 +94,22 @@ class MsgPackSerializer(BaseSerializer):
     MessagePack serializer
 
     CPython’s GC starts when growing allocated object.
-     This means unpacking may cause useless GC.
-     You can use gc.disable() when unpacking large message.
+    This means unpacking may cause useless GC.
+    You can use gc.disable() when unpacking large message.
     """
+    def validate(self, data, *args, **kwargs):
+        pass
 
     def loads(self, data, *args, **kwargs):
         """
         :param data:
         :return:
         """
-        try:
-            return msgpack.unpackb(data, encoding="utf-8",
-                                   object_hook=MsgPackDecoder().decode, **kwargs)
-        except Exception as e:
-            raise MsgPackParseError("MessagePack loads error: %s" % e)
+        return msgpack.unpackb(data, encoding="utf-8", object_hook=MsgPackDecoder().decode, **kwargs)
 
     def dumps(self, data, *args, **kwargs):
         """
         :param data:
         :return:
         """
-        try:
-            return msgpack.packb(data, encoding="utf-8", default=MsgPackEncoder().encode, **kwargs)
-        except Exception as e:
-            raise MsgPackParseError("MessagePack dumps error: %s" % e)
+        return msgpack.packb(data, encoding="utf-8", default=MsgPackEncoder().encode, **kwargs)

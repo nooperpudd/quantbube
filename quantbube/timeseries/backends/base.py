@@ -3,20 +3,20 @@ import abc
 
 from quantbube.utils.serializers import BaseSerializer
 
-class BaseConnection(metaclass=abc.ABCMeta):
+
+class BaseConnection(abc.ABC):
     """
     base connection class
     """
     default_serializer_class = BaseSerializer
+    timezone = "UTC"  # TODO FIX IMPORT SETTINGS
 
-    def __int__(self, structure, *args, **kwargs):
+    def __init__(self, serializer_class=None):
         """
-        :param structure:
-        :param args:
-        :param kwargs:
-        :return:
+        :param serializer_class:
         """
-        self.structure = structure
+        serializer_class = serializer_class or self.default_serializer_class
+        self.serializer = serializer_class()
 
     @abc.abstractmethod
     def add(self, *args, **kwargs):
@@ -71,9 +71,8 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-
     @abc.abstractmethod
-    def iter(self):
+    def iter(self, key):
         """
         iter data
         :return:
@@ -101,7 +100,7 @@ class BaseConnection(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def contains(self, *args, **kwargs):
+    def exists(self, key):
         """
         check data in database
         :return: bool

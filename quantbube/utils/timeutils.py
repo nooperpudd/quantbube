@@ -16,28 +16,5 @@ def tz_now(timezone=None):
     if timezone:
         return datetime.now(tz=pytz.timezone(timezone))
     else:
-        return datetime.now(tz=pytz.utc)
+        return datetime.now()
 
-
-def timestamp_to_datetime(timestamp, timezone=None):
-    """
-    convert timestamp to datetime
-    :param timestamp:
-    :param timezone:
-    :return:
-    """
-    if isinstance(timestamp, (int, float)):
-        return datetime.fromtimestamp(timestamp, timezone)
-
-
-def datetime_to_timestamp(dt):
-    """
-    convert datetime to timestamp
-    :param dt: datetime or datetime string format
-    :return: int timestamp
-    """
-    if isinstance(dt, datetime):
-        return time.mktime(dt.timetuple())
-    elif isinstance(dt, str):
-        dt = parser.parse(dt)
-        return time.mktime(dt.timetuple())

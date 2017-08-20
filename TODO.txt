@@ -1,1 +1,3 @@
 1. Support MessagePack Realtime handle, stream pack and unpack
+
+2. todo support data validation
