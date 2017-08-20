@@ -14,7 +14,7 @@ class MsgPackParseError(Exception):
     pass
 
 
-class BaseSerializer(metaclass=abc.ABC):
+class BaseSerializer(abc.ABC):
     """
     The base serializer class,
     only defines the signature for loads and dumps
