@@ -36,17 +36,17 @@ class BaseConnection(abc.ABC):
         """
         raise NotImplementedError()
 
-    def count(self, key, *args, **kwargs):
+    def count(self, name, *args, **kwargs):
         """
         get the count of the data
         :return:
         """
         raise NotImplementedError()
 
-    def delete(self, key, *args, **kwargs):
+    def delete(self, name, *args, **kwargs):
         """
         delete item from the data
-        :param key:
+        :param name:
         :param args:
         :param kwargs:
         :return:
@@ -54,17 +54,17 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def trim(self, key, length):
+    def trim(self, name, length):
         """
         trim the length of the data
-        :param key: the key location
+        :param name: the key location
         :param length: the length want to trim
         :return:
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_slice(self, key, start=None, end=None, ordering=None, *args, **kwargs):
+    def get_slice(self, name, start=None, end=None, ordering=None, *args, **kwargs):
         """
         return sorted set from args
         :return:
@@ -72,7 +72,7 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def iter(self, key):
+    def iter(self, name):
         """
         iter data
         :return:
@@ -100,7 +100,7 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def exists(self, key):
+    def exists(self, name, timestamp=None):
         """
         check data in database
         :return: bool

@@ -1,5 +1,4 @@
 # encoding:utf-8
-
 import functools
 from typing import Union, TypeVar, Sequence, Iterable
 
@@ -47,7 +46,6 @@ class RedisTimeSeries(BaseConnection):
     Redis to save time-series data
     use redis sorted set as the time-series
     sorted as the desc
-
     """
     # todo support redis transaction
     # todo support ttl
@@ -253,6 +251,7 @@ class RedisTimeSeries(BaseConnection):
         :param kwargs:
         :return:
         """
+
         pipe = self.conn.pipeline()
 
         for key in keys:
@@ -261,7 +260,7 @@ class RedisTimeSeries(BaseConnection):
 
     def add_many(self, keys, *args, **kwargs):
         """
-        :param key:
+        :param keys:
         :param args:
         :param kwargs:
         :return:
