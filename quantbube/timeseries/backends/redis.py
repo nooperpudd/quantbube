@@ -1,7 +1,7 @@
 # encoding:utf-8
 import functools
 from typing import Union, TypeVar, Sequence, Iterable
-
+import functools
 import redis
 
 from quantbube.utils import serializers
@@ -55,7 +55,7 @@ class RedisTimeSeries(BaseConnection):
     incr_format = "{key}:ID"
     hash_format = "{key}:HASH"
 
-    def __init__(self, redis_url, redis_db=None,
+    def __init__(self, redis_url, db=None,
                  serializer_class=None,
                  max_length: int = None, ordering="asc", **kwargs):
         """
@@ -86,10 +86,12 @@ class RedisTimeSeries(BaseConnection):
         pass
 
     @property
+    @functools.lru_cache()
     def client(self):
         """
         :return:
         """
+        # todo redis client
         return self.conn
 
     def length(self, name):
