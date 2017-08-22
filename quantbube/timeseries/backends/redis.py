@@ -4,6 +4,7 @@ from typing import Union, TypeVar, Sequence, Iterable
 
 import redis
 
+from quantbube.utils import helper
 from quantbube.utils import serializers
 from .base import BaseConnection
 
@@ -51,6 +52,9 @@ class RedisTimeSeries(BaseConnection):
     # todo support ttl
     # todo support timezone info
     # todo only support max length 2**63-1
+    # todo support parllizem and mulit threading
+    # todo support lock , when add large amount data
+    # todo implement redis lock
     default_serializer_class = serializers.MsgPackSerializer
     incr_format = "{key}:ID"
     hash_format = "{key}:HASH"
@@ -85,6 +89,10 @@ class RedisTimeSeries(BaseConnection):
         """
         pass
 
+    def rapper_data(self):
+
+        pass
+
     @property
     def client(self):
         """
@@ -92,7 +100,7 @@ class RedisTimeSeries(BaseConnection):
         """
         return self.conn
 
-    def length(self, name):
+    def count(self, name):
         """
         :param name:
         :return: int
@@ -107,18 +115,16 @@ class RedisTimeSeries(BaseConnection):
         zadd (sorted set) key score(timestamp) value
 
         ensure only one timestamp corresponding one value
-
         :param name: key name
         :param timestamp: timestamp
         :param data:
-        :return:
+        :return: bool
         """
         dumps_data = self.serializer.dumps(data)
         incr_key = self.incr_format.format(key=name)
         hash_key = self.hash_format.format(key=name)
 
         if not self.exists(name, timestamp):
-
             key_id = self.client.incr(incr_key)
             dumps_dict = {key_id: dumps_data}
 
@@ -145,6 +151,8 @@ class RedisTimeSeries(BaseConnection):
 
     def get(self, name, timestamp):
         """
+        :param name:
+        :param timestamp:
         :return:
         """
         hash_key = self.hash_format.format(key=name)
@@ -174,6 +182,7 @@ class RedisTimeSeries(BaseConnection):
         if start_timestamp or end_timestamp:
 
             result_data = self.client.zrangebyscore(name, min=start_timestamp, max=end_timestamp, withscores=True)
+            # todo issues
             pipe = self.client.pipeline()
             pipe.decr(incr_key, len(result_data))
             pipe.zremrangebyscore(name, min=start_timestamp, max=end_timestamp)
@@ -194,18 +203,22 @@ class RedisTimeSeries(BaseConnection):
         """
         order = ordering if ordering else self.ordering
 
-        if start_timestamp:
+        if not start_timestamp:
             start_timestamp = "-inf"
-        if end_timestamp:
+        if not end_timestamp:
             end_timestamp = "+inf"
 
-        pipe = self.conn.pipeline()
         if order == "asc":
-            pipe.zrangebyscore(key, min=start_timestamp, max=end_timestamp, withscores=True)
+            result_ids = self.client.zrangebyscore(key, min=start_timestamp, max=end_timestamp, withscores=True)
         else:
-            pipe.zrevrangebyscore(key, min=start_timestamp, max=end_timestamp, withscores=True)
+            result_ids = self.client.zrevrangebyscore(key, min=start_timestamp, max=end_timestamp, withscores=True)
 
-        pipe.execute()
+        if result_ids:
+            pipe = self.conn.pipeline()
+
+            pipe.hmget(key, **result_ids)
+            result_data = pipe.execute()
+            # todo fix
 
     def trim(self, key, length):
         """
@@ -215,10 +228,14 @@ class RedisTimeSeries(BaseConnection):
         :param length:
         :return:
         """
+
         # todo better refactor
         begin = length
         end = -1
+        pipe = self.client.pipeline()
+
         results = self.conn.zremrangebyrank(key, begin, end)
+        pipe.execute()
         return results
 
     def get_slice_by_length(self, key, start_timestamp, limit=None, ordering=None):
@@ -251,21 +268,65 @@ class RedisTimeSeries(BaseConnection):
         :param kwargs:
         :return:
         """
-
         pipe = self.conn.pipeline()
 
         for key in keys:
             pipe.zrem(key)
         pipe.execute()
 
-    def add_many(self, keys, *args, **kwargs):
+    def add_many(self, name, data: list, *args, **kwargs):
         """
-        :param keys:
+        :param name:
+        :param data:
         :param args:
         :param kwargs:
         :return:
         """
-        pass
+        # todo refactor the data
+        # todo test many item data execute how much could support 10000? 100000? 10000000?
+        # remove exist data
+        for index, (timestamp, item) in enumerate(data):
+            if self.exists(timestamp):
+                data.pop(index)
+            else:
+                item = self.serializer.dumps(item)
+
+        length = len(data)
+
+        incr_key = self.incr_format.format(key=name)
+        hash_key = self.hash_format.format(key=name)
+
+        current_incr = self.client.get(incr_key)
+        result_incr = self.client.incrby(incr_key, length)
+
+        chunks_data = helper.chunks(data, 200)
+
+        for chunks in chunks_data:
+            chunks_items = []
+            pipe = self.client.pipeline()
+            pipe.zadd(name, *chunks)
+            pipe.hmset(hash_key, *chunks_items)
+            pipe.execute()
+
+        pipe = self.conn.pipeline()
+
+        for timestamp, item in enumerate(data):
+            dumps_data = self.serializer.dumps(item)
+            pipe.zadd()
+
+        # many data maybe have the dumplicated data
+
+        pipe = self.conn.pipeline()
+        # fist trim exist data timestamp then insert large
+
+        # get the slice data from start to end
+        # find exist ,and remove
+        # then insert larage
+        for item in data:
+            if not self.exists(name, item["timestamp"]):
+                id_ = self.client.incr("data")
+
+        pipe.execute()
 
     def add_many_values(self, key, data: Union[Sequence[T], Iterable[T]], *args, **kwargs):
         """
@@ -283,31 +344,18 @@ class RedisTimeSeries(BaseConnection):
 
         pipe.execute()
 
-    def all(self, key):
+    def iter_all(self, name):
         """
-        :param key:
+        :param name:
         :return:
         """
+        hash_name = self.hash_format.format(key=name)
+        result_ids = self.client.zrange(name, 0, -1, withscores=True)
+        result_data = self.client.hgetall(hash_name)
         pipe = self.conn.pipeline()
-        pipe.zrange(key, 0, -1, withscores=True)
+        pipe.zrange(name, 0, -1, withscores=True)
         results = pipe.execute()
         return results
-
-    def iter_keys(self):
-        """
-        :return:
-        """
-        pass
-
-    def count(self, key, *args, **kwargs):
-        """
-
-        :param key:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        pass
 
     def iter(self, key):
         """
@@ -327,3 +375,9 @@ class RedisTimeSeries(BaseConnection):
         :return:
         """
         pass
+
+
+class RedisLock(object):
+    """
+    """
+    pass

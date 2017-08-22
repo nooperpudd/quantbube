@@ -36,7 +36,7 @@ class BaseConnection(abc.ABC):
         """
         raise NotImplementedError()
 
-    def count(self, name, *args, **kwargs):
+    def count(self, name):
         """
         get the count of the data
         :return:
@@ -80,7 +80,7 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def add_many(self, *args, **kwargs):
+    def add_many(self, key, data, *args, **kwargs):
         """
         add many data
         :param args:

@@ -1,12 +1,12 @@
 # encoding:utf-8
 import datetime
+import random
 import unittest
 
 from quantbube.timeseries.backends import RedisTimeSeries
 
 
 class RedisStoreTest(unittest.TestCase):
-
     def setUp(self):
         self.time_series = RedisTimeSeries(redis_url="redis://127.0.0.1:6379?db=1")
         self.timestamp = datetime.datetime.now().timestamp()
@@ -30,8 +30,10 @@ class RedisStoreTest(unittest.TestCase):
         """
         ensure once insert repeated data
         """
-        key = "APPL:SECOND:1"
+        key = "APPL:SECOND:2"
         timestamp2 = self.timestamp + 1
+        print("tiemstamp", self.timestamp)
+        print("timestamp2", timestamp2)
         data = {"value": 1}
         result1 = self.time_series.add(key, self.timestamp, data)
         result2 = self.time_series.add(key, timestamp2, data)
@@ -41,7 +43,8 @@ class RedisStoreTest(unittest.TestCase):
 
         self.assertTrue(result1)
         self.assertTrue(result2)
-
+        print("result1", result_data1)
+        print("result2", result_data2)
         self.assertDictEqual(data, result_data1)
         self.assertDictEqual(data, result_data2)
 
@@ -49,7 +52,7 @@ class RedisStoreTest(unittest.TestCase):
         """
         ensure each timestamp mapping to each value
         """
-        key = "APPL:SECOND:1"
+        key = "APPL:SECOND:3"
         data = {"value": 21}
         data2 = {"value": 33}
         result = self.time_series.add(key, self.timestamp, data)
@@ -58,16 +61,41 @@ class RedisStoreTest(unittest.TestCase):
         self.assertFalse(result2)
 
     def test_get(self):
-        key = "APPL:SECOND:1"
+        key = "APPL:SECOND:4"
         data = {"value": 10.3}
         self.time_series.add(key, self.timestamp, data)
         result = self.time_series.get(key, self.timestamp)
         self.assertDictEqual(data, result)
 
-    def test_ttl(self):
-        """
-        :return:
-        """
+    def test_delete_one_timestamp(self):
+        # todo what hanppend with ordering asc or desc
+        key = "APPL:SECOND:4"
+        data = {"value", 10.3}
+        self.time_series.add(key, self.timestamp, data)
+        self.time_series.delete(key, start_timestamp=self.timestamp,
+                                end_timestamp=self.timestamp)
+
+    def test_delete_with_start_timestamp(self):
+        key = "APPL:SECOND"
+        data_list = []
+        for i in range(10):
+            timestamp = self.timestamp+i
+            data ={"value":random.randrange(1,100)}
+            self.time_series.add(key,timestamp,data)
+
+    def test_delete_with_end_timestamp(self):
+        key = "APPL:SECOND"
+        data_list = []
+        for i in range(10):
+            timestamp = self.timestamp + i
+            data = {"value": random.randrange(1, 100)}
+            self.time_series.add(key, timestamp, data)
+
+    def test_delete_key(self):
+        pass
+
+    def test_delete_with_start_and_end(self):
+        pass
 
     def test_add_many(self):
         """
