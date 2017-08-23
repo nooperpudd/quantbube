@@ -53,7 +53,7 @@ class RedisTimeSeries(BaseConnection):
     # todo support timezone info
     # todo only support max length 2**63-1
     # todo support parllizem and mulit threading
-    # todo support lock , when add large amount data
+    # todo support lock, when add large amount data
     # todo implement redis lock
     default_serializer_class = serializers.MsgPackSerializer
     incr_format = "{key}:ID"
@@ -108,7 +108,7 @@ class RedisTimeSeries(BaseConnection):
         :return: int
         """
         incr_key = self.incr_format.format(key=name)
-        return self.client.get(incr_key)
+        return int(self.client.get(incr_key))
 
     def add(self, name, timestamp, data):
         """
@@ -171,28 +171,29 @@ class RedisTimeSeries(BaseConnection):
         :param name:
         :param start_timestamp:
         :param end_timestamp:
-        :return: bool
+        :return: bool or delete num
         """
+        # todo large numbers
         incr_key = self.incr_format.format(key=name)
         hash_key = self.hash_format.format(key=name)
 
-        if not start_timestamp:
-            start_timestamp = "-inf"
-        if not end_timestamp:
-            end_timestamp = "+inf"
-
         if start_timestamp or end_timestamp:
+            if not start_timestamp:
+                start_timestamp = "-inf"
+            if not end_timestamp:
+                end_timestamp = "+inf"
 
-            result_data = self.client.zrangebyscore(name, min=start_timestamp, max=end_timestamp, withscores=True)
-            # todo issues
+            result_data = self.client.zrangebyscore(name,
+                                                    min=start_timestamp,
+                                                    max=end_timestamp,
+                                                    withscores=False)
             pipe = self.client.pipeline()
             pipe.decr(incr_key, len(result_data))
             pipe.zremrangebyscore(name, min=start_timestamp, max=end_timestamp)
-            pipe.hdel(hash_key, result_data)
-            pipe.exists()
-
+            pipe.hdel(hash_key, *result_data)
+            pipe.execute()
         else:
-            self.client.delete(incr_key, hash_key, name)
+            return self.client.delete(name, incr_key, hash_key)
 
     def get_slice(self, key, start_timestamp=None, end_timestamp=None, ordering=None,
                   *args, **kwargs):
@@ -289,7 +290,7 @@ class RedisTimeSeries(BaseConnection):
         # remove exist data
         for index, (timestamp, item) in enumerate(data):
             if self.exists(timestamp):
-                data.pop(index)
+                data.pop(index) # todo bugs # index will remove when iter data
             else:
                 item = self.serializer.dumps(item)
 
