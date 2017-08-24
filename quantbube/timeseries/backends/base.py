@@ -64,7 +64,7 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_slice(self, name, start=None, end=None, ordering=None, *args, **kwargs):
+    def get_slice(self, name, start=None, end=None, asc=True):
         """
         return sorted set from args
         :return:
