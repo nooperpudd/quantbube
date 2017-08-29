@@ -83,6 +83,8 @@ class BaseConnection(abc.ABC):
     def add_many(self, key, data, *args, **kwargs):
         """
         add many data
+        :param key:
+        :param data:
         :param args:
         :param kwargs:
         :return:

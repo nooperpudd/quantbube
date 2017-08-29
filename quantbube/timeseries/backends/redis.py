@@ -62,7 +62,7 @@ class RedisTimeSeries(BaseConnection):
 
     def __init__(self, redis_url, db=None,
                  serializer_class=None,
-                 max_length=100000, **kwargs):
+                 max_length=10000, **kwargs):
         """
         :param url:
         :param db:
@@ -197,30 +197,25 @@ class RedisTimeSeries(BaseConnection):
         """
         trim redis sorted set key as the number of length,
         trim the data as the asc timestamp
-        trim data as desc,
-
         :param name:
         :param length:
         :return:
         """
-        # TODO DESC OR ASC, IF
         if length is None:
             length = self.max_length
 
-        begin = 0
-        # TODO IF DEST ,THE BEGIN AND
-        end = (length * -1) - 1
-        print(begin)
-        print(end)
+        if length >= self.count(name):
+            length = self.count(name)
 
         incr_key = self.incr_format.format(key=name)
         hash_key = self.hash_format.format(key=name)
 
-        result_data = self.client.zrange(name=name,
-                                         start=begin,
-                                         end=end, desc=True)
+        begin = 0
+        end = length - 1
+
+        result_data = self.client.zrange(name=name, start=begin, end=end, desc=False)
+
         if result_data:
-            print(result_data)
             pipe = self.client.pipeline()
             pipe.decr(incr_key, length)
             pipe.zremrangebyrank(name, min=begin, max=end)
@@ -252,9 +247,9 @@ class RedisTimeSeries(BaseConnection):
         if limit is None:
             limit = -1
 
-        results_ids = func(name,min=start,max=end,withscores=True,start=start_index,num=limit)
+        results_ids = func(name, min=start, max=end, withscores=True, start=start_index, num=limit)
         if results_ids:
-            data = self.client.hmget(name,**results_ids)
+            data = self.client.hmget(name, **results_ids)
             # todo dumps data
             return data
 

@@ -158,14 +158,10 @@ class RedisStoreTest(unittest.TestCase):
         self.time_series.trim(key, 5)
         self.assertEqual(self.time_series.count(key), 15)
 
-        data_list = sorted(data_list, key=lambda k:k[0])
-        import pprint
-        pprint.pprint(data_list)
+        data_list = sorted(data_list, key=lambda k: k[0])
 
         result_data_list = data_list[5 - len(data_list):]
         trim_data_list = data_list[:5]
-
-        print("result_data_list",result_data_list)
 
         for timestamp, data in result_data_list:
             result = self.time_series.get(key, timestamp)
@@ -178,7 +174,16 @@ class RedisStoreTest(unittest.TestCase):
         key = "APPL:MINS:15"
         data_list = self.generate_data(key, 30)
         self.time_series.trim(key)
-        self.assertEqual(self.time_series.count(key), 30)
+        self.assertEqual(self.time_series.count(key), 0)
+        length = self.time_series.max_length
+        trim_data_list = data_list[:length]
+
+        for timestamp, _ in trim_data_list:
+            result = self.time_series.get(key, timestamp)
+            self.assertIsNone(result)
+
+
+
 
         # todo get all
         # self.assertListEqual()
