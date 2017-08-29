@@ -1,10 +1,8 @@
 # encoding:utf-8
 
-import time
 from datetime import datetime
 
 import pytz
-from dateutil import parser
 
 
 def tz_now(timezone=None):

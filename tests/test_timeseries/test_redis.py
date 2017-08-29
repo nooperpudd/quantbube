@@ -101,9 +101,8 @@ class RedisStoreTest(unittest.TestCase):
         self.assertEqual(client.zrange(key, 0, -1), [])
 
     def test_delete_with_start_timestamp(self):
-
         key = "APPL:SECOND"
-        data_list = self.generate_data(key,10)
+        data_list = self.generate_data(key, 10)
 
         start_timestamp = self.timestamp + 3
 
@@ -119,9 +118,7 @@ class RedisStoreTest(unittest.TestCase):
             self.assertEqual(result, data)
 
     def test_delete_with_end_timestamp(self):
-
         key = "APPL:SECOND"
-
         data_list = self.generate_data(key, 10)
 
         end_timestamp = self.timestamp + 5
@@ -139,12 +136,12 @@ class RedisStoreTest(unittest.TestCase):
 
     def test_delete_with_start_and_end(self):
         key = "APPL:SECOND"
-        data_list = self.generate_data(key,10)
+        data_list = self.generate_data(key, 10)
 
         start_timestamp = self.timestamp + 3
         end_timestamp = self.timestamp + 6
 
-        self.time_series.delete(key,start_timestamp=start_timestamp, end_timestamp=end_timestamp)
+        self.time_series.delete(key, start_timestamp=start_timestamp, end_timestamp=end_timestamp)
         self.assertEqual(self.time_series.count(key), 6)
 
         for item in data_list[:]:
@@ -154,6 +151,37 @@ class RedisStoreTest(unittest.TestCase):
         for timestamp, data in data_list:
             result = self.time_series.get(key, timestamp)
             self.assertEqual(result, data)
+
+    def test_trim(self):
+        key = "APPL:MINS:10"
+        data_list = self.generate_data(key, 20)
+        self.time_series.trim(key, 5)
+        self.assertEqual(self.time_series.count(key), 15)
+
+        data_list = sorted(data_list, key=lambda k:k[0])
+        import pprint
+        pprint.pprint(data_list)
+
+        result_data_list = data_list[5 - len(data_list):]
+        trim_data_list = data_list[:5]
+
+        print("result_data_list",result_data_list)
+
+        for timestamp, data in result_data_list:
+            result = self.time_series.get(key, timestamp)
+            self.assertEqual(result, data)
+        for timestamp, _ in trim_data_list:
+            result = self.time_series.get(key, timestamp)
+            self.assertIsNone(result)
+
+    def test_trim_length_none(self):
+        key = "APPL:MINS:15"
+        data_list = self.generate_data(key, 30)
+        self.time_series.trim(key)
+        self.assertEqual(self.time_series.count(key), 30)
+
+        # todo get all
+        # self.assertListEqual()
 
     def test_add_many(self):
         """

@@ -62,7 +62,7 @@ class RedisTimeSeries(BaseConnection):
 
     def __init__(self, redis_url, db=None,
                  serializer_class=None,
-                 max_length: int = None, **kwargs):
+                 max_length=100000, **kwargs):
         """
         :param url:
         :param db:
@@ -129,7 +129,6 @@ class RedisTimeSeries(BaseConnection):
         if not self.exists(name, timestamp):
             key_id = self.client.incr(incr_key)
             dumps_dict = {key_id: dumps_data}
-
             pipe = self.client.pipeline()
             pipe.zadd(name, timestamp, key_id)
             pipe.hmset(hash_key, dumps_dict)
@@ -165,7 +164,7 @@ class RedisTimeSeries(BaseConnection):
             # only one item
             return self.serializer.loads(data[0])
 
-    def delete(self, name, start_timestamp="-inf", end_timestamp="+inf"):
+    def delete(self, name, start_timestamp=None, end_timestamp=None):
         """
         delete one key item or delete by timestamp order
         :param name:
@@ -178,7 +177,10 @@ class RedisTimeSeries(BaseConnection):
         hash_key = self.hash_format.format(key=name)
 
         if start_timestamp or end_timestamp:
-
+            if not start_timestamp:
+                start_timestamp = "-inf"
+            if not end_timestamp:
+                end_timestamp = "+inf"
             result_data = self.client.zrangebyscore(name,
                                                     min=start_timestamp,
                                                     max=end_timestamp,
@@ -191,51 +193,70 @@ class RedisTimeSeries(BaseConnection):
         else:
             return self.client.delete(name, incr_key, hash_key)
 
-    def trim(self, name, length: int):
+    def trim(self, name, length=None):
         """
         trim redis sorted set key as the number of length,
         trim the data as the asc timestamp
+        trim data as desc,
+
         :param name:
         :param length:
         :return:
         """
-        start = length
-        end = -1
+        # TODO DESC OR ASC, IF
+        if length is None:
+            length = self.max_length
+
+        begin = 0
+        # TODO IF DEST ,THE BEGIN AND
+        end = (length * -1) - 1
+        print(begin)
+        print(end)
 
         incr_key = self.incr_format.format(key=name)
         hash_key = self.hash_format.format(key=name)
-        count = self.count(name)
-        if count > length:
-            result_data = self.client.zrange(name=name,
-                                             start=length,
-                                             end=end, desc=False)
+
+        result_data = self.client.zrange(name=name,
+                                         start=begin,
+                                         end=end, desc=True)
+        if result_data:
+            print(result_data)
             pipe = self.client.pipeline()
             pipe.decr(incr_key, length)
-            pipe.zremrangebyrank(name, start=start, end=end)
+            pipe.zremrangebyrank(name, min=begin, max=end)
             pipe.hdel(hash_key, *result_data)
             pipe.execute()
-        else:
-            # todo is necessary to delete the keys or just rest the data
-            self.client.delete(name, incr_key, hash_key)
 
-    def get_slice(self, name, start_timestamp="-inf",end_timestamp="+inf", asc=True, limit=None):
+    def get_slice(self, name, start=None, end=None,
+                  start_index=None, limit=None, asc=True):
         """
         :param name:
-        :param start_timestamp:
-        :param end_timestamp:
-        :param asc:
+        :param start:
+        :param end:
+        :param start_index:
         :param limit:
-        :return: numpy,array
+        :param asc:
+        :return:
         """
         if asc:
-            result_ids = self.client.zrangebyscore(name, min=start_timestamp, max=end_timestamp, withscores=True)
+            func = self.client.zrangebyscore
         else:
-            result_ids = self.client.zrevrangebyscore(name, min=start_timestamp, max=end_timestamp, withscores=True)
+            func = self.client.zrevrangebyscore
+        if start is None:
+            start = "-inf"
+        if end is None:
+            end = "+inf"
+        if start_index is None:
+            start_index = 0
 
-        if result_ids:
-            result_data = self.client.hmget(name, **result_ids)
+        if limit is None:
+            limit = -1
 
-            # todo fix
+        results_ids = func(name,min=start,max=end,withscores=True,start=start_index,num=limit)
+        if results_ids:
+            data = self.client.hmget(name,**results_ids)
+            # todo dumps data
+            return data
 
     def remove_many(self, keys, *args, **kwargs):
         """
@@ -248,8 +269,8 @@ class RedisTimeSeries(BaseConnection):
         chunks_data = helper.chunks(keys, 10000)
 
         for chunk_keys in chunks_data:
-            incr_chunks = [itertools.starmap(lambda x:self.incr_format.format(key=x),chunks_data)]
-            hash_chunks = [itertools.starmap(lambda x:self.hash_format.format(key=x),chunks_data)]
+            incr_chunks = [itertools.starmap(lambda x: self.incr_format.format(key=x), chunks_data)]
+            hash_chunks = [itertools.starmap(lambda x: self.hash_format.format(key=x), chunks_data)]
             pipe = self.client.pipeline()
             pipe.delete(*chunk_keys)
             pipe.delete(*incr_chunks)
@@ -350,7 +371,6 @@ class RedisTimeSeries(BaseConnection):
         :return:
         """
         self.client.flushdb()
-
 
 
 class RedisLock(object):

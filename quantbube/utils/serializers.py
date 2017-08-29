@@ -97,9 +97,6 @@ class MsgPackSerializer(BaseSerializer):
     This means unpacking may cause useless GC.
     You can use gc.disable() when unpacking large message.
     """
-    def validate(self, data, *args, **kwargs):
-        pass
-
     def loads(self, data, *args, **kwargs):
         """
         :param data:
