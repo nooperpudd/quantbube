@@ -1,7 +1,7 @@
 # encoding:utf-8
 import functools
 import itertools
-from typing import Union, TypeVar, Sequence, Iterable
+from typing import TypeVar
 
 import redis
 
@@ -49,6 +49,7 @@ class RedisTimeSeries(BaseConnection):
     use redis sorted set as the time-series
     sorted as the desc
     """
+    # todo support lte or gte
     # todo support redis transaction
     # todo support ttl
     # todo support timezone info
@@ -56,9 +57,10 @@ class RedisTimeSeries(BaseConnection):
     # todo support parllizem and mulit threading
     # todo support lock, when add large amount data
     # todo implement redis lock
+
     default_serializer_class = serializers.MsgPackSerializer
-    incr_format = "{key}:ID"
-    hash_format = "{key}:HASH"
+    incr_format = "{key}:ID"  # as the auto increase id
+    hash_format = "{key}:HASH"  # as the hash set id
 
     def __init__(self, redis_url, db=None,
                  serializer_class=None,
@@ -233,6 +235,8 @@ class RedisTimeSeries(BaseConnection):
         :param asc:
         :return:
         """
+        # todo large data
+        # todo support numpy, best for memory
         if asc:
             func = self.client.zrangebyscore
         else:
@@ -247,11 +251,16 @@ class RedisTimeSeries(BaseConnection):
         if limit is None:
             limit = -1
 
+        hash_key = self.hash_format.format(key=name)
+
         results_ids = func(name, min=start, max=end, withscores=True, start=start_index, num=limit)
+
         if results_ids:
-            data = self.client.hmget(name, **results_ids)
-            # todo dumps data
-            return data
+            # sorted as the order data
+            ids, timestamps = list(itertools.zip_longest(*results_ids))
+            values = self.client.hmget(hash_key, *ids)
+            iter_dumps = map(self.serializer.loads, values)
+            return list(itertools.zip_longest(timestamps, iter_dumps))
 
     def remove_many(self, keys, *args, **kwargs):
         """
@@ -264,83 +273,57 @@ class RedisTimeSeries(BaseConnection):
         chunks_data = helper.chunks(keys, 10000)
 
         for chunk_keys in chunks_data:
-            incr_chunks = [itertools.starmap(lambda x: self.incr_format.format(key=x), chunks_data)]
-            hash_chunks = [itertools.starmap(lambda x: self.hash_format.format(key=x), chunks_data)]
+            incr_chunks = [map(lambda x: self.incr_format.format(key=x), chunks_data)]
+            hash_chunks = [map(lambda x: self.hash_format.format(key=x), chunks_data)]
             pipe = self.client.pipeline()
             pipe.delete(*chunk_keys)
             pipe.delete(*incr_chunks)
             pipe.delete(*hash_chunks)
             pipe.execute()
 
-    def add_many(self, name, data: list, *args, **kwargs):
+    def add_many(self, name, timestamp_pairs, chunks_size=2000, *args, **kwargs):
         """
         :param name:
-        :param data:
+        :param timestamp_pairs: [("timestamp",data)]
+        :param chunks_size:
         :param args:
         :param kwargs:
         :return:
         """
-        # todo refactor the data
         # todo test many item data execute how much could support 10000? 100000? 10000000?
-        # remove exist data
-        for index, (timestamp, item) in enumerate(data):
-            if self.exists(timestamp):
-                data.pop(index)  # todo bugs # index will remove when iter data
-            else:
-                item = self.serializer.dumps(item)
-
-        length = len(data)
 
         incr_key = self.incr_format.format(key=name)
         hash_key = self.hash_format.format(key=name)
 
-        current_incr = self.client.get(incr_key)
-        result_incr = self.client.incrby(incr_key, length)
+        # remove exist data
+        filter_results = itertools.filterfalse(lambda x: self.exists(name, x[0]), timestamp_pairs)
 
-        chunks_data = helper.chunks(data, 200)
+        chunks_data = helper.chunks(filter_results, chunks_size)
 
         for chunks in chunks_data:
-            chunks_items = []
+            start_id = self.client.get(incr_key) or 1  # if key not exist id equal 0
+            end_id = self.client.incrby(incr_key, amount=len(chunks))  # incr the add length
+
+            start_id = int(start_id)
+            end_id = int(end_id)
+
+            ids_range = range(start_id, end_id)
+
+            dumps_results = map(lambda x: (x[0], self.serializer.dumps(x[1])), chunks)
+
+            mix_data = itertools.zip_longest(dumps_results, ids_range)  # [(("timestamp",data),id),...]
+            mix_data = list(mix_data)  # need converted as list
+
+            timestamp_ids = map(lambda seq: (seq[0][0], seq[1]), mix_data)  # [("timestamp",id),...]
+            ids_pairs = map(lambda seq: (seq[1], seq[0][1]), mix_data)  # [("id",data),...]
+
+            timestamp_ids = itertools.chain.from_iterable(timestamp_ids)
+            ids_values = {k: v for k, v in ids_pairs}
+
             pipe = self.client.pipeline()
-            pipe.zadd(name, *chunks)
-            pipe.hmset(hash_key, *chunks_items)
+            pipe.zadd(name, *timestamp_ids)
+            pipe.hmset(hash_key, ids_values)
             pipe.execute()
-
-        pipe = self.conn.pipeline()
-
-        for timestamp, item in enumerate(data):
-            dumps_data = self.serializer.dumps(item)
-            pipe.zadd()
-
-        # many data maybe have the dumplicated data
-
-        pipe = self.conn.pipeline()
-        # fist trim exist data timestamp then insert large
-
-        # get the slice data from start to end
-        # find exist ,and remove
-        # then insert larage
-        for item in data:
-            if not self.exists(name, item["timestamp"]):
-                id_ = self.client.incr("data")
-
-        pipe.execute()
-
-    def add_many_values(self, key, data: Union[Sequence[T], Iterable[T]], *args, **kwargs):
-        """
-        [{"timestamp":"","values":""}]
-        :param key:
-        :param data:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        pipe = self.conn.pipeline()
-
-        for item in data:
-            pass
-
-        pipe.execute()
 
     def iter_all(self, name):
         """
@@ -355,10 +338,8 @@ class RedisTimeSeries(BaseConnection):
         results = pipe.execute()
         return results
 
-    def iter(self, key):
-        """
-        :return:
-        """
+    def iter(self, name):
+        pass
 
     def flush(self):
         """

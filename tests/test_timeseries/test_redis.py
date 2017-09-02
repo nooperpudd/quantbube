@@ -182,16 +182,45 @@ class RedisStoreTest(unittest.TestCase):
             result = self.time_series.get(key, timestamp)
             self.assertIsNone(result)
 
+    def test_get_slice_with_key(self):
+        key = "APPL:MINS:1"
+        data_list = self.generate_data(key, 30)
+        result_data = self.time_series.get_slice(key)
+        self.assertListEqual(data_list, result_data)
 
+    def test_get_slice_with_start_timestamp(self):
+        key = "APPL:MINS:2"
+        data_list = self.generate_data(key, 30)
+        start = self.timestamp + 6
+        result_data = self.time_series.get_slice(key, start=start)
 
+    def test_get_slice_with_timestamp(self):
+        key = "APPL:MINS:4"
+        data_list = self.generate_data(key, 30)
+        start = self.timestamp + 6
+        end = self.timestamp + 10
+        result_data = self.time_series.get_slice(key, start, end)
 
-        # todo get all
-        # self.assertListEqual()
+    def test_get_slice_with_start_length(self):
+        key = "APPL:MINS:3"
 
     def test_add_many(self):
-        """
-        :return:
-        """
+        key = "APPL:MINS:5"
+        data_list = []
+        for i in range(20):
+            timestamp = self.timestamp + i
+            data = {"value": i}
+            data_list.append((timestamp, data))
+        self.time_series.add_many(key, data_list)
+
+    # def test_add_many_exist(self):
+    #     key = "APPL:MINS:100"
+    #
+    #     data_list = self.generate_data(key,101)
+    #
+    #     self.time_series.add_many(key,data_list)
+
+    def test_add_many_with_chunks(self):
         pass
 
     def test_all(self):
