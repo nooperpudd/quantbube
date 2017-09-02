@@ -49,27 +49,30 @@ class RedisTimeSeries(BaseConnection):
     use redis sorted set as the time-series
     sorted as the desc
     """
+    # todo large data
     # todo support lte or gte
     # todo support redis transaction
     # todo support ttl
-    # todo support timezone info
     # todo only support max length 2**63-1
     # todo support parllizem and mulit threading
     # todo support lock, when add large amount data
     # todo implement redis lock
+    # todo support numpy, best for memory
+    # todo support max time-series length
+    # todo test many item data execute how much could support 10000? 100000? 10000000?
+    # todo max length to auto trim the redis data
 
     default_serializer_class = serializers.MsgPackSerializer
     incr_format = "{key}:ID"  # as the auto increase id
     hash_format = "{key}:HASH"  # as the hash set id
 
     def __init__(self, redis_url, db=None,
-                 serializer_class=None,
-                 max_length=10000, **kwargs):
+                 serializer_class=None, **kwargs):
         """
         :param url:
         :param db:
         :param serializer_class:
-        :param max_length:
+        :param max_length: time-series max length
         :param ordering: set time-series order as asc or desc
         :param kwargs:
         """
@@ -81,19 +84,6 @@ class RedisTimeSeries(BaseConnection):
             self.conn = redis.StrictRedis(connection_pool=pool)
         else:
             self.conn = redis.StrictRedis(**kwargs)
-
-        # todo max length to auto trim the redis data
-        self.max_length = max_length
-
-    def validate_timestamp(self):
-        """
-        :return:
-        """
-        pass
-
-    def rapper_data(self):
-
-        pass
 
     @property
     @functools.lru_cache()
@@ -174,7 +164,6 @@ class RedisTimeSeries(BaseConnection):
         :param end_timestamp:
         :return: bool or delete num
         """
-        # todo large data
         incr_key = self.incr_format.format(key=name)
         hash_key = self.hash_format.format(key=name)
 
@@ -187,6 +176,7 @@ class RedisTimeSeries(BaseConnection):
                                                     min=start_timestamp,
                                                     max=end_timestamp,
                                                     withscores=False)
+
             pipe = self.client.pipeline()
             pipe.decr(incr_key, len(result_data))
             pipe.zremrangebyscore(name, min=start_timestamp, max=end_timestamp)
@@ -195,7 +185,7 @@ class RedisTimeSeries(BaseConnection):
         else:
             return self.client.delete(name, incr_key, hash_key)
 
-    def trim(self, name, length=None):
+    def trim(self, name, length=1000):
         """
         trim redis sorted set key as the number of length,
         trim the data as the asc timestamp
@@ -203,9 +193,6 @@ class RedisTimeSeries(BaseConnection):
         :param length:
         :return:
         """
-        if length is None:
-            length = self.max_length
-
         if length >= self.count(name):
             length = self.count(name)
 
@@ -235,8 +222,6 @@ class RedisTimeSeries(BaseConnection):
         :param asc:
         :return:
         """
-        # todo large data
-        # todo support numpy, best for memory
         if asc:
             func = self.client.zrangebyscore
         else:
@@ -261,6 +246,8 @@ class RedisTimeSeries(BaseConnection):
             values = self.client.hmget(hash_key, *ids)
             iter_dumps = map(self.serializer.loads, values)
             return list(itertools.zip_longest(timestamps, iter_dumps))
+        else:
+            return []
 
     def remove_many(self, keys, *args, **kwargs):
         """
@@ -271,10 +258,9 @@ class RedisTimeSeries(BaseConnection):
         :return:
         """
         chunks_data = helper.chunks(keys, 10000)
-
         for chunk_keys in chunks_data:
-            incr_chunks = [map(lambda x: self.incr_format.format(key=x), chunks_data)]
-            hash_chunks = [map(lambda x: self.hash_format.format(key=x), chunks_data)]
+            incr_chunks = list(map(lambda x: self.incr_format.format(key=x), chunks_data))
+            hash_chunks = list(map(lambda x: self.hash_format.format(key=x), chunks_data))
             pipe = self.client.pipeline()
             pipe.delete(*chunk_keys)
             pipe.delete(*incr_chunks)
@@ -290,8 +276,6 @@ class RedisTimeSeries(BaseConnection):
         :param kwargs:
         :return:
         """
-        # todo test many item data execute how much could support 10000? 100000? 10000000?
-
         incr_key = self.incr_format.format(key=name)
         hash_key = self.hash_format.format(key=name)
 
@@ -324,22 +308,6 @@ class RedisTimeSeries(BaseConnection):
             pipe.zadd(name, *timestamp_ids)
             pipe.hmset(hash_key, ids_values)
             pipe.execute()
-
-    def iter_all(self, name):
-        """
-        :param name:
-        :return:
-        """
-        hash_name = self.hash_format.format(key=name)
-        result_ids = self.client.zrange(name, 0, -1, withscores=True)
-        result_data = self.client.hgetall(hash_name)
-        pipe = self.conn.pipeline()
-        pipe.zrange(name, 0, -1, withscores=True)
-        results = pipe.execute()
-        return results
-
-    def iter(self, name):
-        pass
 
     def flush(self):
         """

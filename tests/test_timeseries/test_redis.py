@@ -13,17 +13,15 @@ class RedisStoreTest(unittest.TestCase):
     def tearDown(self):
         self.time_series.flush()
 
-    def generate_data(self, key, length):
-        """
-        :return:
-        """
+    def generate_data(self, length):
         data_list = []
         for i in range(length):
             timestamp = self.timestamp + i
             data = {"value": i}
             data_list.append((timestamp, data))
-            self.time_series.add(key, timestamp, data)
         return data_list
+
+    # **************** add func ***************
 
     def test_add(self):
         key = "APPL:SECOND:1"
@@ -67,6 +65,8 @@ class RedisStoreTest(unittest.TestCase):
         self.assertTrue(result)
         self.assertFalse(result2)
 
+    # **************** end add func ***************
+
     def test_get(self):
         key = "APPL:SECOND:4"
         data = {"value": 10.3}
@@ -74,7 +74,13 @@ class RedisStoreTest(unittest.TestCase):
         result = self.time_series.get(key, self.timestamp)
         self.assertDictEqual(data, result)
 
+    # **************** delete key ***************
+
     def test_delete_key(self):
+        """
+        test delete key
+        :return:
+        """
         key = "APPL:SECOND:5"
         incr_key = key + ":ID"
         hash_key = key + ":HASH"
@@ -87,22 +93,26 @@ class RedisStoreTest(unittest.TestCase):
         self.assertFalse(self.time_series.exists(incr_key))
 
     def test_delete_one_timestamp(self):
-
+        """
+        test delete with only one timestamp
+        :return:
+        """
         key = "APPL:SECOND:6"
         data = {"value": 10.3}
-        hash_key = key + ":HASH"
         self.time_series.add(key, self.timestamp, data)
         self.time_series.delete(key, start_timestamp=self.timestamp,
                                 end_timestamp=self.timestamp)
         self.assertEqual(self.time_series.count(key), 0)
-
-        client = self.time_series.client
-        self.assertEqual(client.hgetall(hash_key), {})
-        self.assertEqual(client.zrange(key, 0, -1), [])
+        self.assertFalse(self.time_series.exists(key, self.timestamp))
 
     def test_delete_with_start_timestamp(self):
+        """
+        test delete with start timestamp
+        :return:
+        """
         key = "APPL:SECOND"
-        data_list = self.generate_data(key, 10)
+        data_list = self.generate_data(10)
+        self.time_series.add_many(key, data_list)
 
         start_timestamp = self.timestamp + 3
 
@@ -113,13 +123,15 @@ class RedisStoreTest(unittest.TestCase):
             if item[0] >= start_timestamp:
                 data_list.remove(item)
 
-        for timestamp, data in data_list:
-            result = self.time_series.get(key, timestamp)
-            self.assertEqual(result, data)
+        result_data = self.time_series.get_slice(key, start=self.timestamp, end=self.timestamp + 3)
+
+        self.assertListEqual(result_data, data_list)
 
     def test_delete_with_end_timestamp(self):
         key = "APPL:SECOND"
-        data_list = self.generate_data(key, 10)
+        data_list = self.generate_data(10)
+
+        self.time_series.add_many(key, data_list)
 
         end_timestamp = self.timestamp + 5
 
@@ -130,13 +142,14 @@ class RedisStoreTest(unittest.TestCase):
             if item[0] <= end_timestamp:
                 data_list.remove(item)
 
-        for timestamp, data in data_list:
-            result = self.time_series.get(key, timestamp)
-            self.assertEqual(result, data)
+        result_data = self.time_series.get_slice(key, start=end_timestamp)
+
+        self.assertListEqual(result_data, data_list)
 
     def test_delete_with_start_and_end(self):
         key = "APPL:SECOND"
-        data_list = self.generate_data(key, 10)
+        data_list = self.generate_data(10)
+        self.time_series.add_many(key, data_list)
 
         start_timestamp = self.timestamp + 3
         end_timestamp = self.timestamp + 6
@@ -148,83 +161,158 @@ class RedisStoreTest(unittest.TestCase):
             if start_timestamp <= item[0] <= end_timestamp:
                 data_list.remove(item)
 
-        for timestamp, data in data_list:
-            result = self.time_series.get(key, timestamp)
-            self.assertEqual(result, data)
+        result_data = self.time_series.get_slice(key)
+
+        self.assertListEqual(result_data, data_list)
+
+    # **************** end delete key ***************
+
+    # **************** test trim ********************
 
     def test_trim(self):
         key = "APPL:MINS:10"
-        data_list = self.generate_data(key, 20)
+        data_list = self.generate_data(20)
+        self.time_series.add_many(key, data_list)
+
         self.time_series.trim(key, 5)
+
         self.assertEqual(self.time_series.count(key), 15)
 
         data_list = sorted(data_list, key=lambda k: k[0])
 
         result_data_list = data_list[5 - len(data_list):]
+        result_data = self.time_series.get_slice(key)
+
+        self.assertListEqual(result_data_list, result_data)
+
         trim_data_list = data_list[:5]
 
-        for timestamp, data in result_data_list:
-            result = self.time_series.get(key, timestamp)
-            self.assertEqual(result, data)
         for timestamp, _ in trim_data_list:
             result = self.time_series.get(key, timestamp)
             self.assertIsNone(result)
 
     def test_trim_length_none(self):
         key = "APPL:MINS:15"
-        data_list = self.generate_data(key, 30)
+        data_list = self.generate_data(30)
+        self.time_series.add_many(key, data_list)
+
         self.time_series.trim(key)
         self.assertEqual(self.time_series.count(key), 0)
-        length = self.time_series.max_length
-        trim_data_list = data_list[:length]
 
-        for timestamp, _ in trim_data_list:
-            result = self.time_series.get(key, timestamp)
-            self.assertIsNone(result)
+        result_data_list = data_list[1000:]
+        result_data = self.time_series.get_slice(key)
+        self.assertListEqual(result_data_list, result_data)
 
+    # ****************  end test trim ********************
+
+    # ****************  test get slice  ********************
     def test_get_slice_with_key(self):
         key = "APPL:MINS:1"
-        data_list = self.generate_data(key, 30)
+        data_list = self.generate_data(30)
+        self.time_series.add_many(key, data_list)
+
         result_data = self.time_series.get_slice(key)
         self.assertListEqual(data_list, result_data)
 
     def test_get_slice_with_start_timestamp(self):
+        """
+        test get slice with start timestamp
+        :return:
+        """
         key = "APPL:MINS:2"
-        data_list = self.generate_data(key, 30)
+        data_list = self.generate_data(30)
+        self.time_series.add_many(key, data_list)
+
         start = self.timestamp + 6
         result_data = self.time_series.get_slice(key, start=start)
 
+        filter_data = list(filter(lambda seq: seq[0] >= start, data_list))
+
+        self.assertListEqual(result_data, filter_data)
+
+    def test_get_slice_with_end_timestamp(self):
+        """
+        test get slice only with end timestamp
+        :return:
+        """
+        key = "APPL:MINS:6"
+        data_list = self.generate_data(30)
+        self.time_series.add_many(key, data_list)
+        end = self.timestamp + 10
+        result_data = self.time_series.get_slice(key, end=end)
+        filter_data = list(filter(lambda seq: seq[0] <= end, data_list))
+        self.assertEqual(result_data, filter_data)
+
     def test_get_slice_with_timestamp(self):
         key = "APPL:MINS:4"
-        data_list = self.generate_data(key, 30)
+        data_list = self.generate_data(30)
+        self.time_series.add_many(key, data_list)
+
         start = self.timestamp + 6
         end = self.timestamp + 10
         result_data = self.time_series.get_slice(key, start, end)
+        filter_data = list(filter(lambda seq: start <= seq[0] <= end, data_list))
+        self.assertEqual(result_data, filter_data)
 
     def test_get_slice_with_start_length(self):
-        key = "APPL:MINS:3"
-
-    def test_add_many(self):
         key = "APPL:MINS:5"
-        data_list = []
-        for i in range(20):
-            timestamp = self.timestamp + i
-            data = {"value": i}
-            data_list.append((timestamp, data))
+        data_list = self.generate_data(30)
+        self.time_series.add_many(key, data_list)
+        result_data = self.time_series.get_slice(key, start_index=0, limit=10)
+        filter_data = data_list[:10]
+        self.assertEqual(result_data, filter_data)
+
+    def test_get_slice_with_order(self):
+        key = "APPL:MINS:8"
+        data_list = self.generate_data(30)
+        self.time_series.add_many(key, data_list)
+        result_data = self.time_series.get_slice(key, asc=False)
+        filter_data = list(reversed(data_list))
+        self.assertListEqual(result_data, filter_data)
+
+    # ****************  end get slice ********************
+
+    # ****************  test add many ********************
+
+    def test_add_many_exist(self):
+        key = "APPL:MINS:100"
+
+        data_list = self.generate_data(10)
+        self.time_series.add_many(key, data_list)
         self.time_series.add_many(key, data_list)
 
-    # def test_add_many_exist(self):
-    #     key = "APPL:MINS:100"
-    #
-    #     data_list = self.generate_data(key,101)
-    #
-    #     self.time_series.add_many(key,data_list)
+        result_data = self.time_series.get_slice(key)
+        self.assertListEqual(data_list, result_data)
+
+    def test_add_many_data_twice(self):
+
+        key = "APPL:HOUR:1"
+        data_list = self.generate_data(40)
+        data_list1 = data_list[:20]
+        data_list2 = data_list[20:]
+        self.time_series.add_many(key, data_list1)
+        self.time_series.add_many(key, data_list2)
+
+        result_data = self.time_series.get_slice(key)
+        self.assertListEqual(data_list, result_data)
 
     def test_add_many_with_chunks(self):
-        pass
+        key = "APPL:MINS:101"
+        data_list = self.generate_data(30)
 
-    def test_all(self):
-        """
-        :return:
-        """
-        pass
+        self.time_series.add_many(key, data_list, chunks_size=5)
+
+        result_data = self.time_series.get_slice(key)
+        self.assertListEqual(data_list, result_data)
+
+    # ****************  end add many ********************
+
+    # ****************  test remove many ********************
+    
+    # ****************  end remove many ********************
+
+    def test_flush(self):
+        key = "APPL"
+        self.time_series.add(key, self.timestamp, 1)
+        self.time_series.flush()
+        self.assertEqual(self.time_series.get_slice(key), [])

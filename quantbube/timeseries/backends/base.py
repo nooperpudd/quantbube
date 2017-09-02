@@ -72,14 +72,6 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def iter(self, name):
-        """
-        iter data
-        :return:
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
     def add_many(self, key, data, *args, **kwargs):
         """
         add many data
