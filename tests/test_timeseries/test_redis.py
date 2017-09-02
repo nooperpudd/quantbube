@@ -308,7 +308,28 @@ class RedisStoreTest(unittest.TestCase):
     # ****************  end add many ********************
 
     # ****************  test remove many ********************
-    
+    def test_remove_many(self):
+        keys = ["APPL:DAY:" + str(key) for key in range(20)]
+        data_list = self.generate_data(50)
+        for key in keys:
+            self.time_series.add_many(key, data_list)
+
+        remove_keys = keys[:5]
+        rest_keys = keys[5:]
+
+        self.time_series.remove_many(remove_keys)
+
+        for key in remove_keys:
+            self.assertFalse(self.time_series.exists(key))
+            self.assertFalse(self.time_series.client.exists(key + ":ID"))
+            self.assertFalse(self.time_series.client.exists(key + ":HASH"))
+
+        for key in rest_keys:
+            result = self.time_series.get_slice(key)
+            self.assertListEqual(data_list, result)
+
+    # ****************  end remove many ********************
+
     # ****************  end remove many ********************
 
     def test_flush(self):

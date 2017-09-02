@@ -259,13 +259,10 @@ class RedisTimeSeries(BaseConnection):
         """
         chunks_data = helper.chunks(keys, 10000)
         for chunk_keys in chunks_data:
-            incr_chunks = list(map(lambda x: self.incr_format.format(key=x), chunks_data))
-            hash_chunks = list(map(lambda x: self.hash_format.format(key=x), chunks_data))
-            pipe = self.client.pipeline()
-            pipe.delete(*chunk_keys)
-            pipe.delete(*incr_chunks)
-            pipe.delete(*hash_chunks)
-            pipe.execute()
+            incr_chunks = map(lambda x: self.incr_format.format(key=x), chunk_keys)
+            hash_chunks = map(lambda x: self.hash_format.format(key=x), chunk_keys)
+            del_data = itertools.chain(chunk_keys, incr_chunks, hash_chunks)
+            self.client.delete(*del_data)
 
     def add_many(self, name, timestamp_pairs, chunks_size=2000, *args, **kwargs):
         """
