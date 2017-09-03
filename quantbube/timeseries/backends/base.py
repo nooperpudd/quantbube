@@ -36,7 +36,7 @@ class BaseConnection(abc.ABC):
         """
         raise NotImplementedError()
 
-    def count(self, name, *args, **kwargs):
+    def count(self, name):
         """
         get the count of the data
         :return:
@@ -64,7 +64,7 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_slice(self, name, start=None, end=None, ordering=None, *args, **kwargs):
+    def get_slice(self, name, start=None, end=None, asc=True):
         """
         return sorted set from args
         :return:
@@ -72,17 +72,11 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def iter(self, name):
-        """
-        iter data
-        :return:
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def add_many(self, *args, **kwargs):
+    def add_many(self, key, data, *args, **kwargs):
         """
         add many data
+        :param key:
+        :param data:
         :param args:
         :param kwargs:
         :return:
