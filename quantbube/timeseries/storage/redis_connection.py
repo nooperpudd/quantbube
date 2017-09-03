@@ -1,7 +1,6 @@
 # encoding:utf-8
 
 import redis
-import contextlib
 
 
 class RedisConnectionFactory(object):
@@ -15,29 +14,27 @@ class RedisConnectionFactory(object):
         """
         :param kwargs:
         """
-        pass
+        self.connect_alias = {}
+        self.options = {}
 
-    def get_or_create_connection_pool(self):
+    def get_connection(self, **kwargs):
+        pool = self.get_or_create_connection_pool(**kwargs)
+        client = redis.StrictRedis(connection_pool=pool, **kwargs)
+        return client
+
+    def get_or_create_connection_pool(self, **kwargs):
         """
         :return:
         """
-        if self.redis_url:
-            pool = redis.ConnectionPool.from_url(url=self.redis_url, db=self.db, **self.options)
-            self.conn = redis.StrictRedis(connection_pool=pool)
-        else:
-            self.conn = redis.StrictRedis(**kwargs)
+        key = self.options["url"]
+        if key not in self.pools:
+            pool = redis.ConnectionPool.from_url(**kwargs)
+            self.pools[key] = pool
+        return self.pools[key]
 
-        pass
-
-    def get_connection(self):
-        """
-        :return:
-        """
 
     def rest(self):
         """
         :return:
         """
         pass
-
-

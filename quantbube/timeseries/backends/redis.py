@@ -67,16 +67,17 @@ class RedisTimeSeries(BaseConnection):
     hash_format = "{key}:HASH"  # as the hash set id
 
     def __init__(self, redis_url, db=None,
-                 serializer_class=None, **kwargs):
+                 serializer_class=None, compressor_class=None, **kwargs):
         """
         :param url:
         :param db:
         :param serializer_class:
+        :param compressor_class:
         :param max_length: time-series max length
         :param ordering: set time-series order as asc or desc
         :param kwargs:
         """
-        super().__init__(serializer_class)
+        super().__init__(serializer_class, compressor_class)
 
         # todo add redis client, better refactor
         if redis_url:

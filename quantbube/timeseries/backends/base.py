@@ -1,22 +1,26 @@
 # coding:utf-8
 import abc
 
-from quantbube.utils.serializers import BaseSerializer
+from quantbube.utils.compression import DummpyCompressor
+from quantbube.utils.serializers import DummySerializer
 
 
 class BaseConnection(abc.ABC):
     """
     base connection class
     """
-    default_serializer_class = BaseSerializer
-    timezone = "UTC"  # TODO FIX IMPORT SETTINGS
+    default_serializer_class = DummySerializer
+    default_compressor_class = DummpyCompressor
 
-    def __init__(self, serializer_class=None):
+    def __init__(self, serializer_class=None, compressor_class=None):
         """
         :param serializer_class:
+        :param compressor_class:
         """
         serializer_class = serializer_class or self.default_serializer_class
         self.serializer = serializer_class()
+        compressor_class = compressor_class or self.default_compressor_class
+        self.compressor = compressor_class()
 
     @abc.abstractmethod
     def add(self, *args, **kwargs):
