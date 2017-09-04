@@ -122,11 +122,12 @@ class RedisTimeSeries(BaseConnection):
         if not self.exists(name, timestamp):
             key_id = self.client.incr(incr_key)
             dumps_dict = {key_id: dumps_data}
-            pipe = self.client.pipeline()
-            pipe.zadd(name, timestamp, key_id)
-            pipe.hmset(hash_key, dumps_dict)
-            results = pipe.execute()
-            return True if all(results) else False
+            with self.client.pipeline() as pipe:
+                pipe.multi()
+                pipe.zadd(name, timestamp, key_id)
+                pipe.hmset(hash_key, dumps_dict)
+                results = pipe.execute()
+                return True if all(results) else False
         else:
             return False
 
@@ -178,11 +179,12 @@ class RedisTimeSeries(BaseConnection):
                                                     max=end_timestamp,
                                                     withscores=False)
 
-            pipe = self.client.pipeline()
-            pipe.decr(incr_key, len(result_data))
-            pipe.zremrangebyscore(name, min=start_timestamp, max=end_timestamp)
-            pipe.hdel(hash_key, *result_data)
-            pipe.execute()
+            with self.client.pipeline() as pipe:
+                pipe.multi()
+                pipe.decr(incr_key, len(result_data))
+                pipe.zremrangebyscore(name, min=start_timestamp, max=end_timestamp)
+                pipe.hdel(hash_key, *result_data)
+                pipe.execute()
         else:
             return self.client.delete(name, incr_key, hash_key)
 
@@ -206,11 +208,12 @@ class RedisTimeSeries(BaseConnection):
         result_data = self.client.zrange(name=name, start=begin, end=end, desc=False)
 
         if result_data:
-            pipe = self.client.pipeline()
-            pipe.decr(incr_key, length)
-            pipe.zremrangebyrank(name, min=begin, max=end)
-            pipe.hdel(hash_key, *result_data)
-            pipe.execute()
+            with self.client.pipeline() as pipe:
+                pipe.multi()
+                pipe.decr(incr_key, length)
+                pipe.zremrangebyrank(name, min=begin, max=end)
+                pipe.hdel(hash_key, *result_data)
+                pipe.execute()
 
     def get_slice(self, name, start=None, end=None,
                   start_index=None, limit=None, asc=True):
@@ -282,30 +285,31 @@ class RedisTimeSeries(BaseConnection):
 
         chunks_data = helper.chunks(filter_results, chunks_size)
 
-        for chunks in chunks_data:
-            start_id = self.client.get(incr_key) or 1  # if key not exist id equal 0
-            end_id = self.client.incrby(incr_key, amount=len(chunks))  # incr the add length
+        with self.client.pipeline() as pipe:
+            for chunks in chunks_data:
+                start_id = self.client.get(incr_key) or 1  # if key not exist id equal 0
+                end_id = self.client.incrby(incr_key, amount=len(chunks))  # incr the add length
 
-            start_id = int(start_id)
-            end_id = int(end_id)
+                start_id = int(start_id)
+                end_id = int(end_id)
 
-            ids_range = range(start_id, end_id)
+                ids_range = range(start_id, end_id)
 
-            dumps_results = map(lambda x: (x[0], self.serializer.dumps(x[1])), chunks)
+                dumps_results = map(lambda x: (x[0], self.serializer.dumps(x[1])), chunks)
 
-            mix_data = itertools.zip_longest(dumps_results, ids_range)  # [(("timestamp",data),id),...]
-            mix_data = list(mix_data)  # need converted as list
+                mix_data = itertools.zip_longest(dumps_results, ids_range)  # [(("timestamp",data),id),...]
+                mix_data = list(mix_data)  # need converted as list
 
-            timestamp_ids = map(lambda seq: (seq[0][0], seq[1]), mix_data)  # [("timestamp",id),...]
-            ids_pairs = map(lambda seq: (seq[1], seq[0][1]), mix_data)  # [("id",data),...]
+                timestamp_ids = map(lambda seq: (seq[0][0], seq[1]), mix_data)  # [("timestamp",id),...]
+                ids_pairs = map(lambda seq: (seq[1], seq[0][1]), mix_data)  # [("id",data),...]
 
-            timestamp_ids = itertools.chain.from_iterable(timestamp_ids)
-            ids_values = {k: v for k, v in ids_pairs}
+                timestamp_ids = itertools.chain.from_iterable(timestamp_ids)
+                ids_values = {k: v for k, v in ids_pairs}
 
-            pipe = self.client.pipeline()
-            pipe.zadd(name, *timestamp_ids)
-            pipe.hmset(hash_key, ids_values)
-            pipe.execute()
+                pipe.multi()
+                pipe.zadd(name, *timestamp_ids)
+                pipe.hmset(hash_key, ids_values)
+                pipe.execute()
 
     def flush(self):
         """
