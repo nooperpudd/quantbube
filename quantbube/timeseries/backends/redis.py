@@ -1,15 +1,13 @@
 # encoding:utf-8
+import contextlib
 import functools
 import itertools
-from typing import TypeVar
 
 import redis
 
 from quantbube.utils import helper
 from quantbube.utils import serializers
 from .base import BaseConnection
-
-T = TypeVar('T')
 
 
 class RedisException(Exception):
@@ -86,6 +84,12 @@ class RedisTimeSeries(BaseConnection):
         else:
             self.conn = redis.StrictRedis(**kwargs)
 
+        # check redis connection
+        # try:
+        #     self.client.ping()
+        # except Exception as exc:
+        #     raise exc
+
     @property
     @functools.lru_cache()
     def client(self):
@@ -94,6 +98,13 @@ class RedisTimeSeries(BaseConnection):
         """
         # todo redis client
         return self.conn
+
+    @contextlib.contextmanager
+    def _pipe_acquire(self):
+        """
+        :return:
+        """
+        yield self.client.pipeline()
 
     def count(self, name):
         """
@@ -122,7 +133,7 @@ class RedisTimeSeries(BaseConnection):
         if not self.exists(name, timestamp):
             key_id = self.client.incr(incr_key)
             dumps_dict = {key_id: dumps_data}
-            with self.client.pipeline() as pipe:
+            with self._pipe_acquire() as pipe:
                 pipe.multi()
                 pipe.zadd(name, timestamp, key_id)
                 pipe.hmset(hash_key, dumps_dict)
@@ -179,7 +190,7 @@ class RedisTimeSeries(BaseConnection):
                                                     max=end_timestamp,
                                                     withscores=False)
 
-            with self.client.pipeline() as pipe:
+            with self._pipe_acquire() as pipe:
                 pipe.multi()
                 pipe.decr(incr_key, len(result_data))
                 pipe.zremrangebyscore(name, min=start_timestamp, max=end_timestamp)
@@ -208,7 +219,7 @@ class RedisTimeSeries(BaseConnection):
         result_data = self.client.zrange(name=name, start=begin, end=end, desc=False)
 
         if result_data:
-            with self.client.pipeline() as pipe:
+            with self._pipe_acquire() as pipe:
                 pipe.multi()
                 pipe.decr(incr_key, length)
                 pipe.zremrangebyrank(name, min=begin, max=end)
@@ -285,7 +296,7 @@ class RedisTimeSeries(BaseConnection):
 
         chunks_data = helper.chunks(filter_results, chunks_size)
 
-        with self.client.pipeline() as pipe:
+        with self._pipe_acquire() as pipe:
             for chunks in chunks_data:
                 start_id = self.client.get(incr_key) or 1  # if key not exist id equal 0
                 end_id = self.client.incrby(incr_key, amount=len(chunks))  # incr the add length
