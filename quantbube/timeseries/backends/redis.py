@@ -2,6 +2,7 @@
 import contextlib
 import functools
 import itertools
+from operator import itemgetter
 
 import redis
 
@@ -292,7 +293,15 @@ class RedisTimeSeries(BaseConnection):
         hash_key = self.hash_format.format(key=name)
 
         # remove exist data
-        filter_results = itertools.filterfalse(lambda x: self.exists(name, x[0]), timestamp_pairs)
+        # todo maybe other way to optimize this filter code
+        sorted_timestamps = sorted(timestamp_pairs, key=itemgetter(0))
+
+        max_timestamp = sorted_timestamps[-1][0]  # max
+        min_timestamp = sorted_timestamps[0][0]  # min
+
+        filter_data = self.get_slice(name, start=min_timestamp, end=max_timestamp)
+        timestamp_set = set(map(lambda x: x[0], filter_data))
+        filter_results = itertools.filterfalse(lambda x: x[0] in timestamp_set, sorted_timestamps)
 
         chunks_data = helper.chunks(filter_results, chunks_size)
 
