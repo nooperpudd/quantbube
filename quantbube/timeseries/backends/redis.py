@@ -8,7 +8,8 @@ import redis
 
 from quantbube.utils import helper
 from quantbube.utils import serializers
-from .base import BaseConnection
+from .base import TimeSeriesBase
+
 
 
 class RedisException(Exception):
@@ -42,13 +43,12 @@ def transaction():
     return wrapper
 
 
-class RedisTimeSeries(BaseConnection):
+class RedisTimeSeries(TimeSeriesBase):
     """
     Redis to save time-series data
     use redis sorted set as the time-series
     sorted as the desc
     """
-    # todo large data
     # todo support lte or gte
     # todo support redis transaction
     # todo support ttl
@@ -84,12 +84,6 @@ class RedisTimeSeries(BaseConnection):
             self.conn = redis.StrictRedis(connection_pool=pool)
         else:
             self.conn = redis.StrictRedis(**kwargs)
-
-        # check redis connection
-        # try:
-        #     self.client.ping()
-        # except Exception as exc:
-        #     raise exc
 
     @property
     @functools.lru_cache()
@@ -300,9 +294,11 @@ class RedisTimeSeries(BaseConnection):
         min_timestamp = sorted_timestamps[0][0]  # min
 
         filter_data = self.get_slice(name, start=min_timestamp, end=max_timestamp)
-        timestamp_set = set(map(lambda x: x[0], filter_data))
-        filter_results = itertools.filterfalse(lambda x: x[0] in timestamp_set, sorted_timestamps)
-
+        if filter_data:
+            timestamp_set = set(map(lambda x: x[0], filter_data))
+            filter_results = itertools.filterfalse(lambda x: x[0] in timestamp_set, sorted_timestamps)
+        else:
+            filter_results = sorted_timestamps
         chunks_data = helper.chunks(filter_results, chunks_size)
 
         with self._pipe_acquire() as pipe:

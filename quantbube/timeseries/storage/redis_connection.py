@@ -10,12 +10,10 @@ class RedisConnectionFactory(object):
     """
     pools = {}
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """
-        :param kwargs:
         """
-        self.connect_alias = {}
-        self.options = {}
+        self.options = kwargs
 
     def get_connection(self, **kwargs):
         pool = self.get_or_create_connection_pool(**kwargs)
@@ -32,9 +30,5 @@ class RedisConnectionFactory(object):
             self.pools[key] = pool
         return self.pools[key]
 
-
-    def rest(self):
-        """
-        :return:
-        """
+    def close(self):
         pass

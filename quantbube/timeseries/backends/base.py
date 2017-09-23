@@ -5,7 +5,7 @@ from quantbube.utils.compression import DummpyCompressor
 from quantbube.utils.serializers import DummySerializer
 
 
-class BaseConnection(abc.ABC):
+class TimeSeriesBase(abc.ABC):
     """
     base connection class
     """
@@ -23,7 +23,7 @@ class BaseConnection(abc.ABC):
         self.compressor = compressor_class()
 
     @abc.abstractmethod
-    def add(self, *args, **kwargs):
+    def add(self, name, *args, **kwargs):
         """
         add item to storage
         :return:
@@ -31,9 +31,10 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get(self, *args, **kwargs):
+    def get(self, name, *args, **kwargs):
         """
         get one item from storage
+        :param name:
         :param args:
         :param kwargs:
         :return:
@@ -76,10 +77,10 @@ class BaseConnection(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def add_many(self, key, data, *args, **kwargs):
+    def add_many(self, name, data, *args, **kwargs):
         """
         add many data
-        :param key:
+        :param name:
         :param data:
         :param args:
         :param kwargs:

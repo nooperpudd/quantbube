@@ -1,7 +1,7 @@
 from enum import Enum, auto
 
 
-class Resolution(Enum):
+class TimeResolution(Enum):
     """
     time resolution
     """
