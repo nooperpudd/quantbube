@@ -65,25 +65,15 @@ class RedisTimeSeries(TimeSeriesBase):
     incr_format = "{key}:ID"  # as the auto increase id
     hash_format = "{key}:HASH"  # as the hash set id
 
-    def __init__(self, redis_url, db=None,
-                 serializer_class=None, compressor_class=None, **kwargs):
+    def __init__(self, redis_store,
+                 serializer_class=None, compressor_class=None):
         """
-        :param url:
-        :param db:
+        :param redis_store:
         :param serializer_class:
         :param compressor_class:
-        :param max_length: time-series max length
-        :param ordering: set time-series order as asc or desc
-        :param kwargs:
         """
         super().__init__(serializer_class, compressor_class)
-
-        # todo add redis client, better refactor
-        if redis_url:
-            pool = redis.ConnectionPool.from_url(url=redis_url, db=db, **kwargs)
-            self.conn = redis.StrictRedis(connection_pool=pool)
-        else:
-            self.conn = redis.StrictRedis(**kwargs)
+        self.redis_client = redis_store
 
     @property
     @functools.lru_cache()
@@ -91,8 +81,7 @@ class RedisTimeSeries(TimeSeriesBase):
         """
         :return:
         """
-        # todo redis client
-        return self.conn
+        return self.redis_client
 
     @contextlib.contextmanager
     def _pipe_acquire(self):

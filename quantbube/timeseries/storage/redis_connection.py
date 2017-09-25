@@ -1,5 +1,4 @@
 # encoding:utf-8
-
 import redis
 
 
@@ -15,12 +14,11 @@ class RedisConnectionFactory(object):
         """
         self.options = kwargs
 
-    def get_connection(self, **kwargs):
-        pool = self.get_or_create_connection_pool(**kwargs)
-        client = redis.StrictRedis(connection_pool=pool, **kwargs)
-        return client
+    def get_client(self, **kwargs):
+        pool = self.create_pool(**kwargs)
+        return redis.StrictRedis(connection_pool=pool, **kwargs)
 
-    def get_or_create_connection_pool(self, **kwargs):
+    def create_pool(self, **kwargs):
         """
         :return:
         """
@@ -31,4 +29,6 @@ class RedisConnectionFactory(object):
         return self.pools[key]
 
     def close(self):
-        pass
+        for key in self.pools:
+            pool = self.pools[key]
+            pool.disconnect()
