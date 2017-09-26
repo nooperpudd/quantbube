@@ -1,34 +1,59 @@
 # encoding:utf-8
 import redis
 
+from quantbube.conf import settings
+
 
 class RedisConnectionFactory(object):
     """
     store connection pool
     redis connection factory
+
+    REDIS_ENGINE = {
+        "default": {
+            "url": "redis://127.0.0.1:6379?db=1",
+            "options": {
+                "pool_options":{},
+                "redis_options":{},
+            },
+        }
+    }
     """
     pools = {}
+    config = settings.REDIS_ENGINE
 
-    def __init__(self, **kwargs):
+    @classmethod
+    def get_client(cls, server="default"):
         """
+        :param server: server config name
+        :return:
         """
-        self.options = kwargs
+        redis_settings = cls.config.get(server)
+        url = redis_settings.get("url")
+        options = redis_settings.get("options")
+        pool_options = None
+        redis_options = None
+        if options:
+            pool_options = options.get("pool_options")
+            redis_options = options.get("redis_options")
 
-    def get_client(self, **kwargs):
-        pool = self.create_pool(**kwargs)
-        return redis.StrictRedis(connection_pool=pool, **kwargs)
+        pool = cls.create_pool(url, **pool_options)
 
-    def create_pool(self, **kwargs):
+        return redis.StrictRedis(connection_pool=pool, **redis_options)
+
+    @classmethod
+    def create_pool(cls, server, url, **kwargs):
         """
         :return:
         """
-        key = self.options["url"]
-        if key not in self.pools:
-            pool = redis.ConnectionPool.from_url(**kwargs)
-            self.pools[key] = pool
-        return self.pools[key]
+        if server not in cls.pools:
+            pool = redis.ConnectionPool.from_url(url, **kwargs)
+            cls.pools[server] = pool
+        return cls.pools[server]
 
-    def close(self):
-        for key in self.pools:
-            pool = self.pools[key]
+    @classmethod
+    def close(cls):
+        for server in cls.pools:
+            pool = cls.pools[server]
             pool.disconnect()
+        cls.pools = None

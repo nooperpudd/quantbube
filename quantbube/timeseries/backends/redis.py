@@ -4,12 +4,10 @@ import functools
 import itertools
 from operator import itemgetter
 
-import redis
-
+from quantbube.timeseries.storage import redis_connection
 from quantbube.utils import helper
 from quantbube.utils import serializers
 from .base import TimeSeriesBase
-
 
 
 class RedisException(Exception):
@@ -62,10 +60,11 @@ class RedisTimeSeries(TimeSeriesBase):
     # todo max length to auto trim the redis data
 
     default_serializer_class = serializers.MsgPackSerializer
+    connection_factory_cls = redis_connection.RedisConnectionFactory
     incr_format = "{key}:ID"  # as the auto increase id
     hash_format = "{key}:HASH"  # as the hash set id
 
-    def __init__(self, redis_store,
+    def __init__(self, redis_server="default", redis_store=None,
                  serializer_class=None, compressor_class=None):
         """
         :param redis_store:
@@ -73,7 +72,9 @@ class RedisTimeSeries(TimeSeriesBase):
         :param compressor_class:
         """
         super().__init__(serializer_class, compressor_class)
-        self.redis_client = redis_store
+        self.redis_server = redis_server
+        if redis_store:
+            self.redis_client = redis_store
 
     @property
     @functools.lru_cache()
@@ -81,7 +82,10 @@ class RedisTimeSeries(TimeSeriesBase):
         """
         :return:
         """
-        return self.redis_client
+        if self.redis_server is None:
+            return self.connection_factory_cls.get_client(self.redis_server)
+        else:
+            return self.redis_client
 
     @contextlib.contextmanager
     def _pipe_acquire(self):
