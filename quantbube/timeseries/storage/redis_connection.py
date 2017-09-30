@@ -25,7 +25,7 @@ class RedisConnectionFactory(object):
     def get_client(cls, server="default"):
         """
         :param server: server config name
-        :return:
+        :return: redis.StrictRedis
         """
         redis_settings = cls.config.get(server)
         url = redis_settings.get("url")
@@ -43,7 +43,10 @@ class RedisConnectionFactory(object):
     @classmethod
     def create_pool(cls, server, url, **kwargs):
         """
-        :return:
+        :param server: server alias name
+        :param url: redis connection url
+        :param kwargs: redis connection pool kwargs
+        :return: redis.ConnectionPool
         """
         if server not in cls.pools:
             pool = redis.ConnectionPool.from_url(url, **kwargs)
@@ -52,6 +55,10 @@ class RedisConnectionFactory(object):
 
     @classmethod
     def close(cls):
+        """
+        close the redis connection pools
+        :return:
+        """
         for server in cls.pools:
             pool = cls.pools[server]
             pool.disconnect()
