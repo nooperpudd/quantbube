@@ -8,7 +8,6 @@ class RedisConnectionFactory(object):
     """
     store connection pool
     redis connection factory
-
     REDIS_ENGINE = {
         "default": {
             "url": "redis://127.0.0.1:6379?db=1",
@@ -37,7 +36,7 @@ class RedisConnectionFactory(object):
             pool_options = options.get("pool_options")
             redis_options = options.get("redis_options")
 
-        pool = cls.create_pool(url, **pool_options)
+        pool = cls.create_pool(server, url, **pool_options)
 
         return redis.StrictRedis(connection_pool=pool, **redis_options)
 

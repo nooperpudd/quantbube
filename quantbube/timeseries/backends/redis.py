@@ -46,11 +46,11 @@ class RedisTimeSeries(TimeSeriesBase):
     Redis to save time-series data
     use redis sorted set as the time-series
     sorted as the desc
+    support max length 2**63-1
     """
     # todo support lte or gte
     # todo support redis transaction
     # todo support ttl
-    # todo only support max length 2**63-1
     # todo support parllizem and mulit threading
     # todo support lock, when add large amount data
     # todo implement redis lock
@@ -82,10 +82,9 @@ class RedisTimeSeries(TimeSeriesBase):
         """
         :return:
         """
-        if self.redis_server is None:
-            return self.connection_factory_cls.get_client(self.redis_server)
-        else:
-            return self.redis_client
+        if not hasattr(self, "redis_client"):
+            self.redis_client = self.connection_factory_cls.get_client(self.redis_server)
+        return self.redis_client
 
     @contextlib.contextmanager
     def _pipe_acquire(self):
@@ -326,9 +325,3 @@ class RedisTimeSeries(TimeSeriesBase):
         :return:
         """
         self.client.flushdb()
-
-
-class RedisLock(object):
-    """
-    """
-    pass

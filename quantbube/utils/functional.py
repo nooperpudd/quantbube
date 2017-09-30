@@ -1,4 +1,7 @@
 # encoding:utf-8
+"""
+django module lazy-object settings
+"""
 import copy
 import operator
 
