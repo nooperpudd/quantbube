@@ -4,12 +4,10 @@ import functools
 import itertools
 from operator import itemgetter
 
-import redis
-
+from quantbube.timeseries.storage import redis_connection
 from quantbube.utils import helper
 from quantbube.utils import serializers
 from .base import TimeSeriesBase
-
 
 
 class RedisException(Exception):
@@ -48,11 +46,11 @@ class RedisTimeSeries(TimeSeriesBase):
     Redis to save time-series data
     use redis sorted set as the time-series
     sorted as the desc
+    support max length 2**63-1
     """
     # todo support lte or gte
     # todo support redis transaction
     # todo support ttl
-    # todo only support max length 2**63-1
     # todo support parllizem and mulit threading
     # todo support lock, when add large amount data
     # todo implement redis lock
@@ -62,28 +60,21 @@ class RedisTimeSeries(TimeSeriesBase):
     # todo max length to auto trim the redis data
 
     default_serializer_class = serializers.MsgPackSerializer
+    connection_factory_cls = redis_connection.RedisConnectionFactory
     incr_format = "{key}:ID"  # as the auto increase id
     hash_format = "{key}:HASH"  # as the hash set id
 
-    def __init__(self, redis_url, db=None,
-                 serializer_class=None, compressor_class=None, **kwargs):
+    def __init__(self, redis_server="default", redis_store=None,
+                 serializer_class=None, compressor_class=None):
         """
-        :param url:
-        :param db:
+        :param redis_store:
         :param serializer_class:
         :param compressor_class:
-        :param max_length: time-series max length
-        :param ordering: set time-series order as asc or desc
-        :param kwargs:
         """
         super().__init__(serializer_class, compressor_class)
-
-        # todo add redis client, better refactor
-        if redis_url:
-            pool = redis.ConnectionPool.from_url(url=redis_url, db=db, **kwargs)
-            self.conn = redis.StrictRedis(connection_pool=pool)
-        else:
-            self.conn = redis.StrictRedis(**kwargs)
+        self.redis_server = redis_server
+        if redis_store:
+            self.redis_client = redis_store
 
     @property
     @functools.lru_cache()
@@ -91,8 +82,9 @@ class RedisTimeSeries(TimeSeriesBase):
         """
         :return:
         """
-        # todo redis client
-        return self.conn
+        if not hasattr(self, "redis_client"):
+            self.redis_client = self.connection_factory_cls.get_client(self.redis_server)
+        return self.redis_client
 
     @contextlib.contextmanager
     def _pipe_acquire(self):
@@ -333,9 +325,3 @@ class RedisTimeSeries(TimeSeriesBase):
         :return:
         """
         self.client.flushdb()
-
-
-class RedisLock(object):
-    """
-    """
-    pass

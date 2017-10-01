@@ -7,7 +7,7 @@ from quantbube.timeseries.backends import RedisTimeSeries
 
 class RedisStoreTest(unittest.TestCase):
     def setUp(self):
-        self.time_series = RedisTimeSeries(redis_url="redis://127.0.0.1:6379?db=1")
+        self.time_series = RedisTimeSeries()
         self.timestamp = datetime.datetime.now().timestamp()
 
     def tearDown(self):

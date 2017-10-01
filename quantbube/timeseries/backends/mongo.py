@@ -78,3 +78,4 @@ class MongoTimeSeries(TimeSeriesBase):
         pass
 
 class MongoTickStore(TimeSeriesBase):
+    pass
