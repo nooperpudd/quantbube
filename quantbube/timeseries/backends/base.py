@@ -1,7 +1,7 @@
 # coding:utf-8
 import abc
 
-from quantbube.utils.compression import DummpyCompressor
+from quantbube.utils.compression import DummyCompressor
 from quantbube.utils.serializers import DummySerializer
 
 
@@ -10,7 +10,7 @@ class TimeSeriesBase(abc.ABC):
     base connection class
     """
     default_serializer_class = DummySerializer
-    default_compressor_class = DummpyCompressor
+    default_compressor_class = DummyCompressor
 
     def __init__(self, serializer_class=None, compressor_class=None):
         """

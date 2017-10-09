@@ -7,13 +7,6 @@ import msgpack
 from dateutil import parser
 
 
-class MsgPackParseError(Exception):
-    """
-    MessagePack parse error
-    """
-    pass
-
-
 class BaseSerializer(abc.ABC):
     """
     The base serializer class,
@@ -39,18 +32,30 @@ class BaseSerializer(abc.ABC):
         raise NotImplementedError()
 
 
+class DummySerializer(BaseSerializer):
+    """
+    dummy serializer
+    """
+    def dumps(self, data, *args, **kwargs):
+        pass
+
+    def loads(self, data, *args, **kwargs):
+        pass
+
+# ********** Message pack serializer **************
+
+
 class MsgPackDecoder(object):
     """
     decode serializer data
     """
-
     def decode(self, obj):
         """
         :param obj:
         :return:
         """
-        if "__class__" in obj:
-            decode_func = getattr(self, "decode_%s" % obj["__class__"])
+        if "__cls__" in obj:
+            decode_func = getattr(self, "decode_%s" % obj["__cls__"])
             return decode_func(obj)
         return obj
 
@@ -71,20 +76,19 @@ class MsgPackEncoder(object):
     """
     encode the data type to the message pack format
     """
-
     def encode(self, obj):
         """
         :param obj:
         :return:
         """
         if type(obj) is datetime.date:
-            return {"__class__": "date", "str": obj.isoformat()}
+            return {"__cls__": "date", "str": obj.isoformat()}
         elif type(obj) is datetime.datetime:
-            return {"__class__": "datetime", "str": obj.isoformat()}
+            return {"__cls__": "datetime", "str": obj.isoformat()}
         elif type(obj) is datetime.time:
-            return {"__class__": "time", "str": obj.isoformat()}
+            return {"__cls__": "time", "str": obj.isoformat()}
         elif isinstance(obj, decimal.Decimal):
-            return {"__class__": "decimal", "str": str(obj)}
+            return {"__cls__": "decimal", "str": str(obj)}
         else:
             return obj
 
@@ -113,12 +117,3 @@ class MsgPackSerializer(BaseSerializer):
         return msgpack.packb(data, encoding="utf-8", default=MsgPackEncoder().encode, **kwargs)
 
 
-class DummySerializer(BaseSerializer):
-    """
-    dummy serializer
-    """
-    def dumps(self, data, *args, **kwargs):
-        pass
-
-    def loads(self, data, *args, **kwargs):
-        pass
