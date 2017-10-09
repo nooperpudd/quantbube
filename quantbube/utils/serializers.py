@@ -36,19 +36,20 @@ class DummySerializer(BaseSerializer):
     """
     dummy serializer
     """
+
     def dumps(self, data, *args, **kwargs):
         pass
 
     def loads(self, data, *args, **kwargs):
         pass
 
+
 # ********** Message pack serializer **************
-
-
 class MsgPackDecoder(object):
     """
     decode serializer data
     """
+
     def decode(self, obj):
         """
         :param obj:
@@ -76,6 +77,7 @@ class MsgPackEncoder(object):
     """
     encode the data type to the message pack format
     """
+
     def encode(self, obj):
         """
         :param obj:
@@ -115,5 +117,3 @@ class MsgPackSerializer(BaseSerializer):
         :return:
         """
         return msgpack.packb(data, encoding="utf-8", default=MsgPackEncoder().encode, **kwargs)
-
-

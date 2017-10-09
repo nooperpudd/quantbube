@@ -82,7 +82,7 @@ class RedisTimeSeries(TimeSeriesBase):
         """
         :return:
         """
-        if not hasattr(self, "redis_client"):
+        if not getattr(self,"redis_client"):
             self.redis_client = self.connection_factory_cls.get_client(self.redis_server)
         return self.redis_client
 
@@ -279,6 +279,7 @@ class RedisTimeSeries(TimeSeriesBase):
         hash_key = self.hash_format.format(key=name)
 
         # remove exist data
+
         # todo maybe other way to optimize this filter code
         sorted_timestamps = sorted(timestamp_pairs, key=itemgetter(0))
 

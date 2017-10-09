@@ -14,14 +14,18 @@ REDIS_ENGINE = {
     "default": {
         "url": "redis://127.0.0.1:6379?db=1",
         "options": {
-            "pool_options": {},
-            "redis_options": {}
-        },
+            "pool_options": None,
+            "redis_options": None
+        }
     }
 }
+
 MONGO_ENGINE = {
     "default": {
-
+        "url": "mongodb://localhost:27017/",
+        "options": {
+            "maxPoolSize": 10 # mongo max pool size
+        }
     }
 }
 

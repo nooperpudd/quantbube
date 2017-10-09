@@ -1,50 +1,59 @@
-from enum import Enum, auto
+from enum import Enum
+
+# set granularity expired time in redis
+
+GRANULARITIES_TTL = {
+    "second": 60 * 60,  # 1 hour
+    "minute": 60 * 60 * 24,  # 1 day
+    "hour": 60 * 60 * 24 * 7,  # 7 day
+    "day": 60 * 60 * 24 * 30,  # 1 month
+}
 
 
-class TimeResolution(Enum):
+class DatetimeResolution(Enum):
     """
     time resolution
     """
-    MILLISECOND = auto()
-    SECOND = auto()
-    MINUTE = auto()
-    HOUR = auto()
-    DAY = auto()
-    WEEK = auto()
-    MONTH = auto()
-    YEAR = auto()
+    MILLISECOND = 1
+    SECOND = 2
+    MINUTE = 3
+    HOUR = 4
+    DAY = 5
+    WEEK = 6
+    MONTH = 6
+    YEAR = 7
 
 
-class Trigger(Enum):
+class TriggerStatus(Enum):
     """
     transaction trigger
     """
-    SUCCESS = auto()
-    FAILED = auto()
-    HANGUP = auto()  # hang-up
-    CANCEL = auto()
+    SUCCESS = 1
+    FAILED = 2
+    HANGUP = 3  # hang-up
+    CANCEL = 4
 
 
 class TransactionStatus(Enum):
     """
-    交易状态
+    Transaction Status
     """
+    FULL_ORDER = 1  # FULL ORDER
+    PART_ORDER = 2  # 部分成交
+    MARKET_ORDER = 3  # 市价成交
+    LIMIT_ORDER = 4  # 限价成交
+    WITHDRAW_ORDER = 5  # 撤单
 
-    ALL_ORDER = auto()  # 全部成交
-    PART_ORDER = auto()  # 部分成交
-    MARKET_ORDER = auto()  # 市价成交
-    LIMIT_ORDER = auto()  # 限价成交
-    WITHDRAW_ORDER = auto()  # 撤单
 
-class Order(Enum):
+class OrderStatus(Enum):
     """
     """
-    BUY = auto()
-    SELL = auto()
+    BUY = 1
+    SELL = 2
 
 
 class TradeStatus(Enum):
     """
     """
-    BUY = auto()
-    SELL = auto()
+    BUY = 1
+    SELL = 2

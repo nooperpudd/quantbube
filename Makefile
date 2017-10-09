@@ -8,6 +8,9 @@ test:
 cov:
 	py.test -v --cov=quantbube --cov-report html
 
+test-local:
+	pytest -v -s
+
 publish:
 	pip install twine
 	python setup.py sdist bdist_wheel

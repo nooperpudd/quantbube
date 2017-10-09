@@ -15,7 +15,6 @@ class Settings(object):
     """
     set default global settings
     """
-
     def __init__(self, settings_module=None):
         """
         :param settings_module: user set settings
@@ -53,14 +52,12 @@ class Settings(object):
         }
 
 
-# todo need wrapper lazy-settings
 class LazySettings(LazyObject):
     """
     A lazy proxy for either global Django settings or a custom settings object.
     The user can manually configure settings prior to using them. Otherwise,
     Django uses the settings module pointed to by DJANGO_SETTINGS_MODULE.
     """
-
     def _setup(self):
         """
         Load the settings module pointed to by the environment variable. This

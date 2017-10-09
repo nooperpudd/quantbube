@@ -1,9 +1,8 @@
 # encoding:utf-8
 import functools
-from .base import TimeSeriesBase
-import pymongo
 
-from quantbube.const import  TimeResolution
+from quantbube.timeseries.storage import MongoConnection
+from .base import TimeSeriesBase
 
 """
 second resolution
@@ -18,23 +17,33 @@ schema
 }
 """
 
+
 class MongoTimeSeries(TimeSeriesBase):
     """
     """
-    def __init__(self, resolution, db, url="mongodb://localhost:27017/",**kwargs):
+
+    def __init__(self, db, resolution, server="default"):
         """
         """
         super(MongoTimeSeries, self).__init__()
-        self.client = pymongo.MongoClient(url,tz_aware=True,**kwargs)
-        self.database = db
+        self.server = server
         self.resolution = resolution
+        self._db = db
+
+    @property
+    @functools.lru_cache()
+    def client(self):
+        if not getattr(self, "mongo_client"):
+            self.mongo_client = MongoConnection.get_client(self.server)
+        return self.mongo_client
 
     @property
     @functools.lru_cache()
     def db(self):
-        return self.client[self.database]
+        return self.client[self._db]
 
-
+    def get_collection(self, ):
+        pass
 
     def add_many(self, key, data, *args, **kwargs):
         """
@@ -44,7 +53,6 @@ class MongoTimeSeries(TimeSeriesBase):
         :param kwargs:
         :return:
         """
-
 
     def get(self, *args, **kwargs):
         """
@@ -76,6 +84,7 @@ class MongoTimeSeries(TimeSeriesBase):
         :return:
         """
         pass
+
 
 class MongoTickStore(TimeSeriesBase):
     pass

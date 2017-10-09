@@ -29,7 +29,6 @@ class LazyObject(object):
     """
     A wrapper for another class that can be used to delay instantiation of the
     wrapped class.
-
     By subclassing, you have the opportunity to intercept and alter the
     instantiation. If you don't need to do that, use SimpleLazyObject.
     """
@@ -84,15 +83,6 @@ class LazyObject(object):
         if self._wrapped is empty:
             self._setup()
         return unpickle_lazyobject, (self._wrapped,)
-
-    # Overriding __class__ stops __reduce__ from being called on Python 2.
-    # So, define __getstate__ in a way that cooperates with the way that
-    # pickle interprets this class. This fails when the wrapped class is a
-    # builtin, but it's better than nothing.
-    def __getstate__(self):
-        if self._wrapped is empty:
-            self._setup()
-        return self._wrapped.__dict__
 
     def __copy__(self):
         if self._wrapped is empty:
