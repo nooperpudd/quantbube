@@ -82,7 +82,7 @@ class RedisTimeSeries(TimeSeriesBase):
         """
         :return:
         """
-        if not getattr(self,"redis_client"):
+        if not hasattr(self, "redis_client"):
             self.redis_client = self.connection_factory_cls.get_client(self.redis_server)
         return self.redis_client
 

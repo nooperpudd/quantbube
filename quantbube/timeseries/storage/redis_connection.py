@@ -30,8 +30,8 @@ class RedisConnectionFactory(object):
         redis_settings = cls.config.get(server)
         url = redis_settings.get("url")
         options = redis_settings.get("options")
-        pool_options = None
-        redis_options = None
+        pool_options = {}
+        redis_options = {}
         if options:
             pool_options = options.get("pool_options")
             redis_options = options.get("redis_options")
