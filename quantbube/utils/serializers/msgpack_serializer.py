@@ -1,50 +1,13 @@
 # encoding:utf-8
-import abc
 import datetime
 import decimal
 
 import msgpack
 from dateutil import parser
 
-
-class BaseSerializer(abc.ABC):
-    """
-    The base serializer class,
-    only defines the signature for loads and dumps
-    """
-
-    @abc.abstractmethod
-    def loads(self, data, *args, **kwargs):
-        """
-        Deserialize the data
-        :param data: the structure data need to be
-        :return:
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def dumps(self, data, *args, **kwargs):
-        """
-        Serialize ``data`` to kinds of type
-        :param data:
-        :return:
-        """
-        raise NotImplementedError()
+from .base import BaseSerializer
 
 
-class DummySerializer(BaseSerializer):
-    """
-    dummy serializer
-    """
-
-    def dumps(self, data, *args, **kwargs):
-        pass
-
-    def loads(self, data, *args, **kwargs):
-        pass
-
-
-# ********** Message pack serializer **************
 class MsgPackDecoder(object):
     """
     decode serializer data

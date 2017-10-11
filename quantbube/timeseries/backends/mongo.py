@@ -17,25 +17,17 @@ schema
 }
 """
 
-
 class MongoTimeSeries(TimeSeriesBase):
     """
     """
-
-    def __init__(self, db, resolution, server="default"):
+    def __init__(self, resolution, db="quantbube", server="default"):
         """
         """
         super(MongoTimeSeries, self).__init__()
         self.server = server
         self.resolution = resolution
         self._db = db
-
-    @property
-    @functools.lru_cache()
-    def client(self):
-        if not getattr(self, "mongo_client"):
-            self.mongo_client = MongoConnection.get_client(self.server)
-        return self.mongo_client
+        self.client = MongoConnection.get_client(self.server)
 
     @property
     @functools.lru_cache()
@@ -45,6 +37,12 @@ class MongoTimeSeries(TimeSeriesBase):
     def get_collection(self, ):
         pass
 
+    def ensure_index(self):
+        """
+        create index core
+        :return:
+        """
+        pass
     def add_many(self, key, data, *args, **kwargs):
         """
         :param key:
