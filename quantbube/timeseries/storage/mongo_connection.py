@@ -43,9 +43,8 @@ class MongoConnection(object):
         else:
             mongo_config = cls.config.get(alias)
             url = mongo_config.get("url")
-            options = mongo_config.get("options", {})
+            options = mongo_config.get("options")
             client = pymongo.MongoClient(url, **options)
-
             cls.connections[alias] = client
             mongo_client = client
         return mongo_client

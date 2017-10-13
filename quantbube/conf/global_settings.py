@@ -24,7 +24,7 @@ MONGO_ENGINE = {
     "default": {
         "url": "mongodb://localhost:27017/",
         "options": {
-            "maxPoolSize": 10  # mongo max pool size
+            "maxPoolSize": 200  # mongo max pool size
         }
     }
 }

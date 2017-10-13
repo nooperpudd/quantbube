@@ -1,6 +1,11 @@
 # encoding:utf-8
 import functools
 
+import pytz
+from bson.codec_options import CodecOptions
+from pymongo import WriteConcern
+
+from quantbube.conf import settings
 from quantbube.timeseries.storage import MongoConnection
 from .base import TimeSeriesBase
 
@@ -17,10 +22,13 @@ schema
 }
 """
 
+
 class MongoTimeSeries(TimeSeriesBase):
     """
     """
-    def __init__(self, resolution, db="quantbube", server="default"):
+
+    # todo support db authenticate
+    def __init__(self, resolution, collection, db="quantbube", server="default"):
         """
         """
         super(MongoTimeSeries, self).__init__()
@@ -28,21 +36,73 @@ class MongoTimeSeries(TimeSeriesBase):
         self.resolution = resolution
         self._db = db
         self.client = MongoConnection.get_client(self.server)
+        self._collection = collection
 
     @property
     @functools.lru_cache()
     def db(self):
         return self.client[self._db]
 
-    def get_collection(self, ):
-        pass
+    @property
+    @functools.lru_cache()
+    def collection(self):
+        options = CodecOptions(tz_aware=True, tzinfo=pytz.timezone(settings.TIMEZONE))
+
+        return self.db.get_collection(self._collection,
+                                      codec_options=options,
+                                      write_concern=WriteConcern())
+
+    def create_collection(self, collection, validator=None):
+        """
+        :param collection:
+        :return:
+        """
+        # https://docs.mongodb.com/manual/reference/command/create/
+
+        options = CodecOptions(tz_aware=True, tzinfo=pytz.timezone(settings.TIMEZONE))
+
+        self.db.create_collection(name=collection,
+                                  options=options,
+                                  validator=validator,
+                                  validationAction="error")
+
+    def get_collection(self, collection):
+        """
+        get collection
+        :param collection:
+        :return:
+        """
+        # todo write concern
+
+        options = CodecOptions(tz_aware=True, tzinfo=pytz.timezone(settings.TIMEZONE))
+
+        return self.db.create_collection(collection, codec_options=options,
+                                         write_concern=WriteConcern())
+
+    def create_validate(self, schema):
+        """
+        :param schema:
+        :return:
+        """
+        collection = self.get_collection(self.collection)
+        collection
 
     def ensure_index(self):
         """
         create index core
         :return:
         """
+        # todo create index
+
         pass
+
+    def _bulk_write(self):
+        """
+        :return:
+        """
+        #  http://api.mongodb.com/python/current/examples/bulk.html
+        # todo support mongo bulk write
+
     def add_many(self, key, data, *args, **kwargs):
         """
         :param key:

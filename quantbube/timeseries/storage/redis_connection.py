@@ -4,7 +4,7 @@ import redis
 from quantbube.conf import settings
 
 
-class RedisConnectionFactory(object):
+class RedisConnection(object):
     """
     store connection pool
     redis connection factory

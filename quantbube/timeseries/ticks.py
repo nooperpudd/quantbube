@@ -1,11 +1,14 @@
 # encoding:utf-8
 
+import pandas
+
 
 class Tick(object):
     """
     """
+
     # __slots__ =  ("","")
-    def __int__(self,timestamp,symbol,bid,ask,bid_amount,ask_amount):
+    def __int__(self, timestamp, symbol, bid, ask, bid_amount, ask_amount):
         """
         :return:
         """
@@ -15,4 +18,3 @@ class Tick(object):
         self.ask = ask
         self.bid_amount = bid_amount
         self.ask_amount = ask_amount
-

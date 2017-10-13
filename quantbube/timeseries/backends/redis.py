@@ -4,7 +4,7 @@ import functools
 import itertools
 from operator import itemgetter
 
-from quantbube.timeseries.storage import redis_connection
+from quantbube.timeseries.storage import RedisConnection
 from quantbube.utils import helper
 from quantbube.utils import serializers
 from .base import TimeSeriesBase
@@ -60,7 +60,7 @@ class RedisTimeSeries(TimeSeriesBase):
     # todo max length to auto trim the redis data
 
     default_serializer_class = serializers.MsgPackSerializer
-    connection_factory_cls = redis_connection.RedisConnectionFactory
+    connection_cls = RedisConnection
     incr_format = "{key}:ID"  # as the auto increase id
     hash_format = "{key}:HASH"  # as the hash set id
 
@@ -83,7 +83,7 @@ class RedisTimeSeries(TimeSeriesBase):
         :return:
         """
         if not hasattr(self, "redis_client"):
-            self.redis_client = self.connection_factory_cls.get_client(self.redis_server)
+            self.redis_client = self.connection_cls.get_client(self.redis_server)
         return self.redis_client
 
     @contextlib.contextmanager
