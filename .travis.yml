@@ -23,7 +23,7 @@ services:
 before_install:
   # install bcolz packages
   - gcc -v && g++ -v && cmake --version
-  - git clone git://github.com:Blosc/c-blosc.git ../closc
+  - git clone git://github.com/Blosc/c-blosc.git ../closc
   - cd ../blosc && mkdir build && cd build
   - cmake .. && cmake --build . && cmake --build . --target install
 
