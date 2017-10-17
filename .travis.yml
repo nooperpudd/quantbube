@@ -24,7 +24,7 @@ before_install:
   # install bcolz packages
   - gcc -v && g++ -v && cmake --version
   - git clone git://github.com/Blosc/bcolz.git
-  - cd blosc && mkdir build && cd build
+  - cd bcolz && mkdir build && cd build
   - cmake .. && cmake --build . --target install
 
 install:
