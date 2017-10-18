@@ -1,7 +1,7 @@
 # https://docs.travis-ci.com/
 language: python
 
-sudo: yes
+sudo: no
 
 python:
   - "3.5"
@@ -23,9 +23,11 @@ services:
 before_install:
   # install bcolz packages
   - gcc -v && g++ -v && cmake --version
-  - git clone git://github.com/Blosc/c-blosc.git ./blosc
+  - git clone git://github.com/Blosc/c-blosc.git ./blosc -b master
   - cd ./blosc && mkdir build && cd build
-  - cmake .. && cmake --build . && cmake --build . --target install
+  - cmake ..
+  - cmake --build .
+  - sudo cmake --build . --target install
 
 install:
   - pip install -r requirements.txt
