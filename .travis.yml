@@ -28,12 +28,9 @@ before_install:
   - cmake ..
   - cmake --build .
   - sudo cmake --build . --target install
+  - cd ../..  # back to repository directory
 
 install:
-  - pwd
-  - ls
-  - cd ..
-  - pwd
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
 
