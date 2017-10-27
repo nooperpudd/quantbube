@@ -30,17 +30,17 @@ before_install:
   - sudo cmake --build . --target install
 
 install:
-
+  - pwd
+  - ls
+  - cd ..
+  - pwd
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
 
 before_script:
   - pip --version
   - pip freeze # show packages version
-  - pwd
-  - ls
-  - cd ..
-  - pwd
+
 
 script:
   - pytest -v
