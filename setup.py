@@ -1,3 +1,4 @@
+# coding:utf-8
 import codecs
 import os
 import re
@@ -12,7 +13,7 @@ def find_version(*file_paths):
     extract directly from the init file
     """
     here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, *file_paths), 'r') as f:
+    with codecs.open(os.path.join(here, *file_paths), 'r', encoding="utf-8") as f:
         version_file = f.read()
 
     # The version line must have the form
@@ -39,7 +40,7 @@ setup(
               "Investment Framework"],
     author_email="winton@quant.vc",
     description="Quantitative Analysis and Trading Strategy Framework",
-    long_description=open("README.rst"),
+    long_description=open("README.rst", encoding="utf-8").read(),
     license="GNU Lesser General Public License v3 or later (LGPLv3+)",
     url="https://github.com/nooperpudd/quantbube",
     packages=find_packages(exclude=["tests", "test.*", "sample"]),
@@ -48,21 +49,19 @@ setup(
     tests_require=tests_require,
     classifiers=[
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Science/Research",
-        "Operating System :: OS Independent",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Topic :: Office/Business",
-        "Topic :: Office/Business :: Financial",
-        "Topic :: Office/Business :: Financial :: Investment",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Mathematics"
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ],
-
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'Operating System :: OS Independent',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Topic :: Office/Business',
+        'Topic :: Office/Business :: Financial',
+        'Topic :: Office/Business :: Financial :: Investment',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ]
 )

@@ -2,28 +2,30 @@
 language: python
 
 sudo: false
+
 python:
   - "3.5"
   - "3.6"
 
-cache:
-  directories:
-    - $HOME/.cache/.pip/
-
+cache: pip
 
 services:
   - mongodb
   - redis-server
 
 install:
-  - pip install -r requirements.txt --cache-dir=$CACHE_DIR --upgrade
-  - pip install -r requirements.txt --cache-dir=$CACHE_DIR --upgrade
+  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
 
+before_script:
+  - pip --version
+  - pip freeze # show packages version
 
 script:
-  - py.test --cov=codecov
+  - pytest -v
+  - py.test -v --cov=quantbube --cov-report xml
 
 after_success:
  # run codecov report
-  - codecov
+  - codecov -e $TRAVIS_PYTHON_VERSION
 
