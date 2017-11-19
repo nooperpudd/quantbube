@@ -1,5 +1,4 @@
 # encoding:utf-8
-
 import pymongo
 
 from quantbube.conf import settings
@@ -29,6 +28,7 @@ class MongoConnection(object):
     """
     """
     config = settings.MONGO_ENGINE
+
     connections = {}  # mongo connection strings
 
     @classmethod
@@ -51,7 +51,6 @@ class MongoConnection(object):
     @classmethod
     def disconnect(cls, alias="default"):
         """
-        :return:
         """
         if alias in cls.connections:
             cls.connections[alias].close()

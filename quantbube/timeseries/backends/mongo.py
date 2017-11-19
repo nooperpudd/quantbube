@@ -22,13 +22,11 @@ schema
 }
 """
 
+
 class MongoTimeSeries(TimeSeriesBase):
     """
     """
-
-    # todo support db authenticate
-    def __init__(self, resolution, collection,schema, db="quantbube", server="default"):
-
+    def __init__(self, resolution, collection, schema, db="quantbube", server="default"):
         """
         :param db:
         :param resolution:
@@ -39,15 +37,19 @@ class MongoTimeSeries(TimeSeriesBase):
         self.server = server
         self.resolution = resolution
         self._db = db
-        self.client = MongoConnection.get_client(self.server)
         self._collection = collection
         self.schema = schema
+        self.client = MongoConnection.get_client(server)
 
     @property
     @functools.lru_cache()
     def db(self):
         return self.client[self._db]
 
+    @property
+    @functools.lru_cache()
+    def db(self):
+        return self.client[self._db]
 
     @property
     @functools.lru_cache()
@@ -91,7 +93,6 @@ class MongoTimeSeries(TimeSeriesBase):
         :return:
         """
         collection = self.get_collection(self.collection)
-        collection
 
     def ensure_index(self):
         """
@@ -135,12 +136,6 @@ class MongoTimeSeries(TimeSeriesBase):
         """
         pass
 
-    @property
-    def query(self):
-        """
-        :return:
-        """
-        pass
 
     def _set_index(self):
         """
