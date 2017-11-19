@@ -22,14 +22,18 @@ schema
 }
 """
 
-
 class MongoTimeSeries(TimeSeriesBase):
     """
     """
 
     # todo support db authenticate
-    def __init__(self, resolution, collection, db="quantbube", server="default"):
+    def __init__(self, resolution, collection,schema, db="quantbube", server="default"):
+
         """
+        :param db:
+        :param resolution:
+        :param schema:
+        :param server:
         """
         super(MongoTimeSeries, self).__init__()
         self.server = server
@@ -37,11 +41,13 @@ class MongoTimeSeries(TimeSeriesBase):
         self._db = db
         self.client = MongoConnection.get_client(self.server)
         self._collection = collection
+        self.schema = schema
 
     @property
     @functools.lru_cache()
     def db(self):
         return self.client[self._db]
+
 
     @property
     @functools.lru_cache()

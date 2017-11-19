@@ -21,7 +21,7 @@ services:
   - redis-server
 
 before_install:
-  # install bcolz packages
+  # install bcolz packages todo need to build blosc ?
   - gcc -v && g++ -v && cmake --version
   - git clone git://github.com/Blosc/c-blosc.git ./blosc -b master
   - cd ./blosc && mkdir build && cd build

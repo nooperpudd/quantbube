@@ -29,7 +29,6 @@ class MongoConnection(object):
     """
     """
     config = settings.MONGO_ENGINE
-    dbs = {}  # mongo db
     connections = {}  # mongo connection strings
 
     @classmethod
