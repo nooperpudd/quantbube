@@ -31,6 +31,7 @@ before_install:
   - cd ../..  # back to repository directory
 
 install:
+  - pip install pip setuptools wheel Cython --upgrade
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
 
