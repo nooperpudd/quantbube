@@ -9,19 +9,6 @@ from quantbube.conf import settings
 from quantbube.timeseries.storage import MongoConnection
 from .base import TimeSeriesBase
 
-"""
-second resolution
-
-schema
-{ 
-    name: "",
-    data: {
-    
-    }
-    timestamp: ""
-}
-"""
-
 
 class MongoTimeSeries(TimeSeriesBase):
     """
@@ -48,11 +35,6 @@ class MongoTimeSeries(TimeSeriesBase):
 
     @property
     @functools.lru_cache()
-    def db(self):
-        return self.client[self._db]
-
-    @property
-    @functools.lru_cache()
     def collection(self):
         options = CodecOptions(tz_aware=True, tzinfo=pytz.timezone(settings.TIMEZONE))
 
@@ -63,6 +45,7 @@ class MongoTimeSeries(TimeSeriesBase):
     def create_collection(self, collection, validator=None):
         """
         :param collection:
+        :param validator:
         :return:
         """
         # https://docs.mongodb.com/manual/reference/command/create/
@@ -134,8 +117,9 @@ class MongoTimeSeries(TimeSeriesBase):
         :param kwargs:
         :return:
         """
+        collection = self.db[self.collection]
+        collection.update()
         pass
-
 
     def _set_index(self):
         """
@@ -144,6 +128,18 @@ class MongoTimeSeries(TimeSeriesBase):
         """
         pass
 
+class MongoTickStore(MongoTimeSeries):
 
-class MongoTickStore(TimeSeriesBase):
+    # https://jira.mongodb.org/browse/PYTHON-1064
+
+    def add(self, name, *args, **kwargs):
+        """
+        :param name:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        tick_store = self.db[self.collection]
+
+class MongoBarStore(MongoTimeSeries):
     pass
