@@ -4,7 +4,7 @@ import functools
 import pytz
 from bson.codec_options import CodecOptions
 from pymongo import WriteConcern
-
+import datetime
 from quantbube.conf import settings
 from quantbube.timeseries.storage import MongoConnection
 from .base import TimeSeriesBase
@@ -13,6 +13,7 @@ from .base import TimeSeriesBase
 class MongoTimeSeries(TimeSeriesBase):
     """
     """
+
     def __init__(self, collection, db="quantbube", server="default", validator=None):
         """
         :param db:
@@ -75,7 +76,6 @@ class MongoTimeSeries(TimeSeriesBase):
         """
         collection = self.get_collection(self.collection)
 
-
     def ensure_unique(self):
         """
         :return:
@@ -115,16 +115,7 @@ class MongoTimeSeries(TimeSeriesBase):
         """
         pass
 
-    def add(self, name, *args, **kwargs):
-        """
-        :param name:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        collection = self.db[self.collection]
-        collection.update()
-        pass
+
 
     def _set_index(self):
         """
@@ -133,20 +124,24 @@ class MongoTimeSeries(TimeSeriesBase):
         """
         pass
 
+
 class MongoTickStore(MongoTimeSeries):
-
     # https://jira.mongodb.org/browse/PYTHON-1064
+    """
 
-    def add(self, name, *args, **kwargs):
+    """
+    def add(self, symbol, timestamp, data):
         """
-        :param name:
-        :param args:
-        :param kwargs:
+        :param symbol:
+        :param timestamp:
+        :param data:
         :return:
         """
-        tick_store = self.db[self.collection]
+        collection = self.db[self.collection]
+
+        collection.insert_one(document=document)
+
 
 class MongoBarStore(MongoTimeSeries):
-
-    def __init__(self,resolution):
+    def __init__(self, resolution):
         self.resolution = resolution
