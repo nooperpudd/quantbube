@@ -13,19 +13,17 @@ from .base import TimeSeriesBase
 class MongoTimeSeries(TimeSeriesBase):
     """
     """
-    def __init__(self, resolution, collection, schema, db="quantbube", server="default"):
+    def __init__(self, collection, db="quantbube", server="default", validator=None):
         """
         :param db:
-        :param resolution:
-        :param schema:
         :param server:
+        :param validator:
         """
         super(MongoTimeSeries, self).__init__()
         self.server = server
-        self.resolution = resolution
+
         self._db = db
         self._collection = collection
-        self.schema = schema
         self.client = MongoConnection.get_client(server)
 
     @property
@@ -76,6 +74,13 @@ class MongoTimeSeries(TimeSeriesBase):
         :return:
         """
         collection = self.get_collection(self.collection)
+
+
+    def ensure_unique(self):
+        """
+        :return:
+        """
+        pass
 
     def ensure_index(self):
         """
@@ -142,4 +147,6 @@ class MongoTickStore(MongoTimeSeries):
         tick_store = self.db[self.collection]
 
 class MongoBarStore(MongoTimeSeries):
-    pass
+
+    def __init__(self,resolution):
+        self.resolution = resolution
